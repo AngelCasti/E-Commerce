@@ -21,25 +21,6 @@
 ================================================================================
 */
 
-const tickerData=[
-  {sym:'BTC/USD',price:'$67,240',chg:'+2.14%',up:true},
-  {sym:'ETH/USD',price:'$3,480',chg:'+1.82%',up:true},
-  {sym:'EUR/USD',price:'1.0841',chg:'-0.12%',up:false},
-  {sym:'GBP/USD',price:'1.2620',chg:'+0.08%',up:true},
-  {sym:'USD/JPY',price:'154.32',chg:'+0.24%',up:false},
-  {sym:'S&P 500',price:'5,248',chg:'+0.62%',up:true},
-  {sym:'NASDAQ',price:'16,428',chg:'+0.91%',up:true},
-  {sym:'USD/SGD',price:'1.3420',chg:'-0.05%',up:false},
-  {sym:'AUD/USD',price:'0.6580',chg:'+0.18%',up:true},
-  {sym:'XAU/USD',price:'$2,318',chg:'+0.44%',up:true},
-];
-const track=document.getElementById('tickerTrack');
-[...tickerData,...tickerData].forEach(t=>{
-  const el=document.createElement('div');
-  el.className='ticker-item';
-  el.innerHTML=`<span class="ticker-sym">${t.sym}</span><span class="ticker-price">${t.price}</span><span class="${t.up?'ticker-up':'ticker-dn'}">${t.chg}</span>`;
-  track.appendChild(el);
-});
 
 const logos=['Stripe','Shopify','Notion','Linear','Vercel','Figma','Supabase','Railway','Loom','Calendly','Webflow','Intercom'];
 const lt=document.getElementById('logosTrack');
