@@ -181,6 +181,96 @@
   </div>
 </section>
 
+<!-- SECCIÓN: AGENDAR UNA CITA -->
+<section class="security-section" id="schedule">
+  <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+    <div style="text-align: center; margin-bottom: 32px;">
+      <div class="section-tag">Atención Personalizada</div>
+      <h2 class="section-title">Agendar una Cita Técnica</h2>
+      <p class="section-sub">Selecciona el tipo de servicio que necesitas, la fecha y hora que mejor se adapten a tu agenda.</p>
+    </div>
+
+    <form id="scheduleAppointmentForm" onsubmit="event.preventDefault(); alert('¡Cita solicitada con éxito! Te enviaremos la confirmación a tu correo.');" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <!-- Nombre Completo -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="clientName" style="font-size: 14px; font-weight: 600; color: var(--text);">Nombre Completo *</label>
+          <input type="text" id="clientName" placeholder="Ej. Ana Martínez" required style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;">
+        </div>
+
+        <!-- Correo Electrónico -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="clientEmail" style="font-size: 14px; font-weight: 600; color: var(--text);">Correo Electrónico *</label>
+          <input type="email" id="clientEmail" placeholder="ana@empresa.com" required style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <!-- Empresa / Organización -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="clientCompany" style="font-size: 14px; font-weight: 600; color: var(--text);">Empresa / Planta Industrial</label>
+          <input type="text" id="clientCompany" placeholder="Ej. Automatizaciones del Norte" style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;">
+        </div>
+
+        <!-- Tipo de Cita / Servicio -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="appointmentType" style="font-size: 14px; font-weight: 600; color: var(--text);">Motivo de la Cita *</label>
+          <select id="appointmentType" required style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;">
+            <option value="">Selecciona una opción</option>
+            <option value="demo">Demostración de Equipo / Cobots</option>
+            <option value="consulting">Asesoría de Proyecto de Automatización</option>
+            <option value="support">Soporte Técnico o Mantenimiento</option>
+            <option value="scada">Integración de Software SCADA / PLC</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+        <!-- Fecha -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="appointmentDate" style="font-size: 14px; font-weight: 600; color: var(--text);">Fecha Deseada *</label>
+          <input type="date" id="appointmentDate" required style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none; color-scheme: dark;">
+        </div>
+
+        <!-- Hora -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label for="appointmentTime" style="font-size: 14px; font-weight: 600; color: var(--text);">Horario Preferido *</label>
+          <select id="appointmentTime" required style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none;">
+            <option value="">Selecciona un horario</option>
+            <option value="09:00">09:00 AM</option>
+            <option value="11:00">11:00 AM</option>
+            <option value="14:00">02:00 PM</option>
+            <option value="16:00">04:00 PM</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Modalidad -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 14px; font-weight: 600; color: var(--text);">Modalidad *</label>
+        <div style="display: flex; gap: 20px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text2); cursor: pointer;">
+            <input type="radio" name="modality" value="virtual" checked style="accent-color: var(--sky);"> Virtual (Videollamada)
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text2); cursor: pointer;">
+            <input type="radio" name="modality" value="onsite" style="accent-color: var(--sky);"> Presencial (En Planta / Oficinas)
+          </label>
+        </div>
+      </div>
+
+      <!-- Detalles o Notas adicionales -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label for="appointmentNotes" style="font-size: 14px; font-weight: 600; color: var(--text);">Detalles del Proyecto o Consulta</label>
+        <textarea id="appointmentNotes" rows="4" placeholder="Describe brevemente tus requerimientos o dudas técnicas..." style="background: var(--bg3); border: 1px solid var(--border2); color: var(--text); padding: 12px 16px; border-radius: 10px; font-family: inherit; font-size: 14px; outline: none; resize: vertical;"></textarea>
+      </div>
+
+      <!-- Botón de Envío -->
+      <button type="submit" class="btn-primary" style="margin-top: 10px; padding: 14px 24px; font-size: 15px; width: 100%; cursor: pointer; border: none;">Confirmar y Agendar Cita</button>
+    </form>
+  </div>
+</section>
+
 <!-- LOGOS -->
 <div class="logos-section">
   <div class="logos-label">Trusted by teams at</div>
