@@ -21,16 +21,6 @@
 ================================================================================
 */
 
-
-const logos=['Stripe','Shopify','Notion','Linear','Vercel','Figma','Supabase','Railway','Loom','Calendly','Webflow','Intercom'];
-const lt=document.getElementById('logosTrack');
-[...logos,...logos].forEach(l=>{
-  const el=document.createElement('div');
-  el.className='logo-item';
-  el.textContent=l;
-  lt.appendChild(el);
-});
-
 const nav=document.getElementById('mainNav');
 const ticker=document.querySelector('.ticker');
 window.addEventListener('scroll',()=>{
