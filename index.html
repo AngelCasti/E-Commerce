@@ -738,7 +738,7 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Unificado: Supabase, userInfo y appointments -->
+<!-- 2. Script Unificado y Seguro para Citas, Login y Registro -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Tus credenciales de Supabase
@@ -747,32 +747,27 @@
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Referencias a los campos del formulario
+    // ==========================================
+    // 1. MÓDULO DE CITAS (Appointments & userInfo)
+    // ==========================================
     const clientEmailInput = document.getElementById('clientEmail');
-    const clientNameInput = document.getElementById('clientName');
-    const clientCompanyInput = document.getElementById('clientCompany');
-    const form = document.getElementById('scheduleAppointmentForm');
-
-    // ==========================================
-    // PARTE A: Autocompletar desde la tabla 'userInfo'
-    // ==========================================
     if (clientEmailInput) {
       clientEmailInput.addEventListener('blur', async () => {
         const email = clientEmailInput.value.trim();
         if (!email) return;
 
         try {
-          // Consulta en la tabla 'userInfo'
-          // (Nota: Asegúrate de que las columnas en tu BD se llamen 'email', 'name' y 'company' o ajústalas aquí)
           const { data, error } = await supabaseClient
             .from('userInfo')
             .select('*')
-            .eq('email', email) 
+            .eq('email', email)
             .maybeSingle();
 
           if (error) throw error;
 
           if (data) {
+            const clientNameInput = document.getElementById('clientName');
+            const clientCompanyInput = document.getElementById('clientCompany');
             if (clientNameInput && data.name) clientNameInput.value = data.name;
             if (clientCompanyInput && data.company) clientCompanyInput.value = data.company;
             console.log('Datos de userInfo cargados automáticamente.');
@@ -783,56 +778,107 @@
       });
     }
 
-    // ==========================================
-    // PARTE B: Guardar cita en la tabla 'appointments'
-    // ==========================================
-    if (form) {
-      form.addEventListener('submit', async (e) => {
+    const appointmentForm = document.getElementById('scheduleAppointmentForm');
+    if (appointmentForm) {
+      appointmentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const clientName = clientNameInput ? clientNameInput.value : '';
-        const clientEmail = clientEmailInput ? clientEmailInput.value : '';
-        const clientCompany = clientCompanyInput ? clientCompanyInput.value : '';
-        const appointmentType = document.getElementById('appointmentType').value;
-        const appointmentDate = document.getElementById('appointmentDate').value;
-        const appointmentTime = document.getElementById('appointmentTime').value;
+        const clientName = document.getElementById('clientName')?.value || '';
+        const clientEmail = document.getElementById('clientEmail')?.value || '';
+        const clientCompany = document.getElementById('clientCompany')?.value || '';
+        const appointmentType = document.getElementById('appointmentType')?.value || '';
+        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
+        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
         const modality = document.querySelector('input[name="modality"]:checked')?.value || 'virtual';
-        const appointmentNotes = document.getElementById('appointmentNotes').value;
+        const appointmentNotes = document.getElementById('appointmentNotes')?.value || '';
 
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Scheduling...';
-        submitBtn.disabled = true;
+        const submitBtn = appointmentForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.textContent = 'Scheduling...';
+          submitBtn.disabled = true;
+        }
 
         try {
           const { error } = await supabaseClient
             .from('appointments')
-            .insert([
-              {
-                client_name: clientName,
-                client_email: clientEmail,
-                client_company: clientCompany,
-                appointment_type: appointmentType,
-                appointment_date: appointmentDate,
-                appointment_time: appointmentTime,
-                modality: modality,
-                appointment_notes: appointmentNotes
-              }
-            ]);
+            .insert([{
+              client_name: clientName,
+              client_email: clientEmail,
+              client_company: clientCompany,
+              appointment_type: appointmentType,
+              appointment_date: appointmentDate,
+              appointment_time: appointmentTime,
+              modality: modality,
+              appointment_notes: appointmentNotes
+            }]);
 
           if (error) throw error;
 
           alert('Appointment requested successfully! We will send a confirmation to your email.');
-          form.reset();
+          appointmentForm.reset();
         } catch (error) {
           console.error('Error saving appointment:', error.message);
           alert('There was an error saving your appointment. Please check your network or credentials.');
         } finally {
-          submitBtn.textContent = originalText;
-          submitBtn.disabled = false;
+          if (submitBtn) {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          }
         }
       });
     }
+
+    // ==========================================
+    // 2. MÓDULO DE CREAR CUENTA (Register)
+    // ==========================================
+    const registerForm = document.getElementById('registerForm'); // Asegúrate de que tu formulario de registro tenga este ID
+    if (registerForm) {
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('registerEmail')?.value;
+        const password = document.getElementById('registerPassword')?.value;
+
+        if (!email || !password) return alert('Por favor llena todos los campos.');
+
+        try {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          
+          alert('¡Cuenta creada con éxito! Revisa tu correo electrónico para confirmar.');
+          registerForm.reset();
+        } catch (err) {
+          console.error('Error en registro:', err.message);
+          alert('Error al registrarse: ' + err.message);
+        }
+      });
+    }
+
+    // ==========================================
+    // 3. MÓDULO DE INICIO DE SESIÓN (Login)
+    // ==========================================
+    const loginForm = document.getElementById('loginForm'); // Asegúrate de que tu formulario de login tenga este ID
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail')?.value;
+        const password = document.getElementById('loginPassword')?.value;
+
+        if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
+
+        try {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          alert('¡Bienvenido de nuevo!');
+          // window.location.href = 'index.html'; // Descomenta si quieres redirigir al iniciar sesión
+        } catch (err) {
+          console.error('Error en login:', err.message);
+          alert('Error al iniciar sesión: Verifíca tus credenciales.');
+        }
+      });
+    }
+
   });
 </script>
 
