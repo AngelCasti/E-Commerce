@@ -735,181 +735,139 @@
     </form>
   </div>
 </div>
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   SUPERBASE    |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+  
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Unificado y Seguro para Citas, Login y Registro -->
+<!-- 2. Script Aislado y Seguro (No romperá los botones de la plantilla) -->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Tus credenciales de Supabase
-    const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
-    
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  (function() {
+    document.addEventListener('DOMContentLoaded', () => {
+      const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
+      
+      let supabaseClient;
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch (err) {
+        console.error("Error al iniciar Supabase:", err);
+        return;
+      }
 
-    // ==========================================
-    // 1. MÓDULO DE CITAS (Appointments & userInfo)
-    // ==========================================
-    const clientEmailInput = document.getElementById('clientEmail');
-    if (clientEmailInput) {
-      clientEmailInput.addEventListener('blur', async () => {
-        const email = clientEmailInput.value.trim();
-        if (!email) return;
+      // ==========================================
+      // CITAS (Appointments & userInfo)
+      // ==========================================
+      const clientEmailInput = document.getElementById('clientEmail');
+      if (clientEmailInput) {
+        clientEmailInput.addEventListener('blur', async () => {
+          const email = clientEmailInput.value.trim();
+          if (!email) return;
+          try {
+            const { data } = await supabaseClient.from('userInfo').select('*').eq('email', email).maybeSingle();
+            if (data) {
+              const nameInput = document.getElementById('clientName');
+              const compInput = document.getElementById('clientCompany');
+              if (nameInput && data.name) nameInput.value = data.name;
+              if (compInput && data.company) compInput.value = data.company;
+            }
+          } catch (e) { console.error(e); }
+        });
+      }
 
-        try {
-          const { data, error } = await supabaseClient
-            .from('userInfo')
-            .select('*')
-            .eq('email', email)
-            .maybeSingle();
-
-          if (error) throw error;
-
-          if (data) {
-            const clientNameInput = document.getElementById('clientName');
-            const clientCompanyInput = document.getElementById('clientCompany');
-            if (clientNameInput && data.name) clientNameInput.value = data.name;
-            if (clientCompanyInput && data.company) clientCompanyInput.value = data.company;
-            console.log('Datos de userInfo cargados automáticamente.');
+      const appointmentForm = document.getElementById('scheduleAppointmentForm');
+      if (appointmentForm) {
+        appointmentForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const clientName = document.getElementById('clientName')?.value.trim() || '';
+          const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
+          const appointmentDate = document.getElementById('appointmentDate')?.value || '';
+          const appointmentTime = document.getElementById('appointmentTime')?.value || '';
+          
+          if (!clientName || !clientEmail || !appointmentDate || !appointmentTime) {
+            alert('Por favor completa los campos obligatorios de la cita.');
+            return;
           }
-        } catch (err) {
-          console.error('Error al consultar userInfo:', err.message);
-        }
-      });
-    }
 
-    const appointmentForm = document.getElementById('scheduleAppointmentForm');
-    if (appointmentForm) {
-      appointmentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const clientName = document.getElementById('clientName')?.value || '';
-        const clientEmail = document.getElementById('clientEmail')?.value || '';
-        const clientCompany = document.getElementById('clientCompany')?.value || '';
-        const appointmentType = document.getElementById('appointmentType')?.value || '';
-        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
-        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
-        const modality = document.querySelector('input[name="modality"]:checked')?.value || 'virtual';
-        const appointmentNotes = document.getElementById('appointmentNotes')?.value || '';
-
-        const submitBtn = appointmentForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn ? submitBtn.textContent : '';
-        if (submitBtn) {
-          submitBtn.textContent = 'Scheduling...';
-          submitBtn.disabled = true;
-        }
-
-        try {
-          const { error } = await supabaseClient
-            .from('appointments')
-            .insert([{
+          try {
+            const { error } = await supabaseClient.from('appointments').insert([{
               client_name: clientName,
               client_email: clientEmail,
-              client_company: clientCompany,
-              appointment_type: appointmentType,
               appointment_date: appointmentDate,
-              appointment_time: appointmentTime,
-              modality: modality,
-              appointment_notes: appointmentNotes
+              appointment_time: appointmentTime
             }]);
-
-          if (error) throw error;
-
-          alert('Appointment requested successfully! We will send a confirmation to your email.');
-          appointmentForm.reset();
-        } catch (error) {
-          console.error('Error saving appointment:', error.message);
-          alert('There was an error saving your appointment. Please check your network or credentials.');
-        } finally {
-          if (submitBtn) {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+            if (error) throw error;
+            alert('¡Cita solicitada con éxito!');
+            appointmentForm.reset();
+          } catch (err) {
+            alert('Error al guardar la cita: ' + err.message);
           }
-        }
-      });
-    }
+        });
+      }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
-    
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ==========================================
-    // 2. MÓDULO DE INICIO DE SESIÓN (Login) Seguro
-    // ==========================================
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // Busca el input de correo de forma flexible (por ID o por su tipo)
-        const emailInput = loginForm.querySelector('#loginEmail') || loginForm.querySelector('#email') || loginForm.querySelector('input[type="email"]');
-        // Busca el input de contraseña de forma flexible
-        const passwordInput = loginForm.querySelector('#loginPassword') || loginForm.querySelector('#password') || loginForm.querySelector('input[type="password"]');
-
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-
-        console.log("Intentando iniciar sesión con:", email);
-
-        if (!email || !password) {
-          return alert('Por favor ingresa correo y contraseña.');
-        }
-
-        try {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-
-          alert('¡Bienvenido de nuevo!');
-          // window.location.href = 'index.html'; // Descomenta cuando quieras redirigir
-        } catch (err) {
-          console.error('Error en login:', err.message);
-          alert('Error al iniciar sesión: ' + err.message);
-        }
-      });
-    }
-
-    // ==========================================
-    // 3. MÓDULO DE CREAR CUENTA (Register) Seguro
-    // ==========================================
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-      registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const nameInput = registerForm.querySelector('#registerName') || registerForm.querySelector('#name') || registerForm.querySelector('input[placeholder*="Name" i]');
-        const emailInput = registerForm.querySelector('#registerEmail') || registerForm.querySelector('#email') || registerForm.querySelector('input[type="email"]');
-        const passwordInput = registerForm.querySelector('#registerPassword') || registerForm.querySelector('#password') || registerForm.querySelector('input[type="password"]');
-
-        const name = nameInput ? nameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-
-        console.log("Intentando registrar:", { name, email });
-
-        if (!email || !password) {
-          return alert('Por favor llena todos los campos obligatorios.');
-        }
-
-        try {
-          const { data, error } = await supabaseClient.auth.signUp({ 
-            email, 
-            password,
-            options: { data: { full_name: name } }
-          });
+      // ==========================================
+      // LOGIN
+      // ==========================================
+      const loginForm = document.getElementById('loginForm');
+      if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const emailInput = loginForm.querySelector('#loginEmail') || loginForm.querySelector('#email') || loginForm.querySelector('input[type="email"]');
+          const passwordInput = loginForm.querySelector('#loginPassword') || loginForm.querySelector('#password') || loginForm.querySelector('input[type="password"]');
           
-          if (error) throw error;
+          const email = emailInput ? emailInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
           
-          alert('¡Cuenta creada con éxito! Revisa tu correo electrónico para confirmar.');
-          registerForm.reset();
-        } catch (err) {
-          console.error('Error en registro:', err.message);
-          alert('Error al registrarse: ' + err.message);
-        }
-      });
-    }
-  });
+          if (!email || !password) {
+            alert('Por favor ingresa correo y contraseña.');
+            return;
+          }
+
+          try {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            alert('¡Bienvenido de nuevo!');
+          } catch (err) {
+            alert('Error al iniciar sesión: ' + err.message);
+          }
+        });
+      }
+
+      // ==========================================
+      // REGISTER (Crear cuenta)
+      // ==========================================
+      const registerForm = document.getElementById('registerForm');
+      if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const emailInput = registerForm.querySelector('#registerEmail') || registerForm.querySelector('#email') || registerForm.querySelector('input[type="email"]');
+          const passwordInput = registerForm.querySelector('#registerPassword') || registerForm.querySelector('#password') || registerForm.querySelector('input[type="password"]');
+          
+          const email = emailInput ? emailInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+          
+          if (!email || !password) {
+            alert('Por favor llena todos los campos.');
+            return;
+          }
+
+          try {
+            const { error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) throw error;
+            alert('¡Cuenta creada con éxito! Revisa tu correo para confirmar.');
+            registerForm.reset();
+          } catch (err) {
+            alert('Error al registrarse: ' + err.message);
+          }
+        });
+      }
+
+    });
+  })();
 </script>
 
 <!-- 3. Script de la plantilla Novapay al final de todo -->
