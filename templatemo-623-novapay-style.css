@@ -45,6 +45,189 @@ body{
   overflow-x:hidden;
 }
 
+/*Para que abra el ojo la contrseña*/
+/* Envoltorio del input para posicionamiento relativo */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 42px !important; /* Espacio para que el texto no tape el ojo */
+}
+
+/* Botón del ojo */
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text3, #888);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s ease;
+}
+
+.toggle-password-btn:hover {
+  color: var(--sky, #4a9ee8);
+}
+
+/* Estilo visual cuando la contraseña está visible (ojo tachado) */
+.toggle-password-btn.active {
+  color: var(--sky, #4a9ee8);
+}
+
+/* Ocultar el ícono nativo de contraseña en Edge / Internet Explorer */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Ocultar el ícono nativo de contraseña en Chrome, Safari y otros navegadores basados en Webkit */
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-password-toggle-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+}
+/*Firma crujolin Uwu*/
+
+
+/* Overlay Modal con fondo borroso y oscuro */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(5, 12, 20, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Modal Activo */
+.auth-modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tarjeta del Pop-up */
+.auth-modal-card {
+  background: var(--bg2, #0d1926);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 20px;
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.auth-modal-overlay.open .auth-modal-card {
+  transform: translateY(0);
+}
+
+/* Botón para cerrar (X) */
+.auth-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text3, #888);
+  font-size: 28px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.auth-close-btn:hover {
+  color: var(--text, #fff);
+}
+
+/* Solapas / Tabs para Iniciar Sesión y Registro */
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  margin-bottom: 24px;
+}
+
+.auth-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text3, #888);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+  color: var(--sky, #4a9ee8);
+  border-bottom-color: var(--sky, #4a9ee8);
+}
+
+/* Formularios */
+.auth-form {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form.active {
+  display: flex;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #fff);
+}
+
+.auth-field input {
+  background: var(--bg3, #081019);
+  border: 1px solid var(--border2, rgba(255, 255, 255, 0.15));
+  color: var(--text, #fff);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.auth-submit-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  cursor: pointer;
+}
+
 /* TICKER */
 .ticker{
   background:var(--bg2);

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndustriaLink RFID - Monitor y Gestión de Almacén</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        industrial: {
+                            900: '#0B0F17',
+                            800: '#131B2E',
+                            700: '#1E293B',
+                            600: '#334155',
+                        },
+                        accent: {
+                            emerald: '#10B981',
+                            blue: '#3B82F6',
+                            cyan: '#06B6D4',
+                            amber: '#F59E0B',
+                            rose: '#EF4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font & FontAwesome for Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for industrial look */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0F17; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.02); }
+        }
+        .live-pulse { animation: pulse-glow 2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-industrial-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-accent-emerald selection:text-black">
+
+    <!-- Navigation Bar -->
+    <header class="bg-industrial-800/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-emerald to-accent-blue flex items-center justify-center text-industrial-900 font-bold text-xl shadow-lg shadow-accent-emerald/20">
+                    <i class="fa-solid fa-tower-broadcast"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">IndustriaLink RFID</span>
+                    <span class="hidden sm:inline-block ml-2 px-2 py-0.5 text-[10px] uppercase font-semibold bg-accent-emerald/10 text-accent-emerald border border-accent-emerald/30 rounded-full">PyME Planta 01</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex items-center space-x-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium transition text-accent-emerald bg-industrial-700/60 border border-slate-700">
+                    <i class="fa-solid fa-chart-line mr-2"></i>Monitor en Vivo
+                </button>
+                <button onclick="switchTab('catalog')" id="nav-catalog" class="px-3 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:text-white hover:bg-industrial-700/30">
+                    <i class="fa-solid fa-box-archive mr-2"></i>Catálogo de Productos
+                </button>
+                <button onclick="switchTab('tags')" id="nav-tags" class="px-3 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:text-white hover:bg-industrial-700/30">
+                    <i class="fa-solid fa-tags mr-2"></i>Vínculo RFID (EPC)
+                </button>
+                <button onclick="switchTab('architecture')" id="nav-architecture" class="px-3 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:text-white hover:bg-industrial-700/30">
+                    <i class="fa-solid fa-database mr-2"></i>Arquitectura DB
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center space-x-2 bg-industrial-900 px-3 py-1.5 rounded-full border border-slate-700">
+                    <span class="w-2.5 h-2.5 rounded-full bg-accent-emerald live-pulse"></span>
+                    <span class="text-xs font-medium text-slate-300" id="system-status-text">Sistema En Línea</span>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Subnav Bar -->
+        <div class="md:hidden flex justify-around bg-industrial-900 border-t border-slate-800 py-2 text-xs">
+            <button onclick="switchTab('dashboard')" id="mob-dashboard" class="text-accent-emerald font-medium px-2 py-1"><i class="fa-solid fa-chart-line block text-base mb-0.5"></i>Monitor</button>
+            <button onclick="switchTab('catalog')" id="mob-catalog" class="text-slate-400 font-medium px-2 py-1"><i class="fa-solid fa-box-archive block text-base mb-0.5"></i>Productos</button>
+            <button onclick="switchTab('tags')" id="mob-tags" class="text-slate-400 font-medium px-2 py-1"><i class="fa-solid fa-tags block text-base mb-0.5"></i>Etiquetas</button>
+            <button onclick="switchTab('architecture')" id="mob-architecture" class="text-slate-400 font-medium px-2 py-1"><i class="fa-solid fa-database block text-base mb-0.5"></i>Arquitectura</button>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- ==================== VIEW 1: DASHBOARD / MONITOR EN VIVO ==================== -->
+        <section id="view-dashboard" class="space-y-6">
+            <!-- Top Controls & Simulation Banner -->
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-4 sm:p-5 flex flex-col lg:flex-row items-center justify-between gap-4 shadow-xl">
+                <div class="flex items-center space-x-4 w-full lg:w-auto">
+                    <div class="p-3 bg-accent-blue/10 text-accent-blue rounded-xl border border-accent-blue/20">
+                        <i class="fa-solid fa-wave-square text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">Panel de Antenas RFID Industriales</h1>
+                        <p class="text-xs text-slate-400">Captura automática EPC en portales de andenes y líneas de producción</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+                    <!-- Simulation Toggle Switch -->
+                    <div class="flex items-center space-x-2 bg-industrial-900 px-3.5 py-2 rounded-xl border border-slate-700">
+                        <span class="text-xs font-medium text-slate-300">Simulación Automática</span>
+                        <button onclick="toggleSimulation()" id="sim-toggle-btn" class="w-11 h-6 bg-slate-700 rounded-full transition relative p-0.5 focus:outline-none">
+                            <div id="sim-toggle-ball" class="w-5 h-5 bg-white rounded-full transition-transform transform translate-x-0"></div>
+                        </button>
+                    </div>
+                    <!-- Manual Trigger Button -->
+                    <button onclick="simulateRfidRead()" class="px-4 py-2 bg-accent-emerald hover:bg-emerald-600 text-industrial-900 font-semibold text-xs rounded-xl shadow-lg shadow-accent-emerald/20 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Simular Lectura Antena</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Industrial Metrics Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Stock Actual -->
+                <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-slate-700/30 text-7xl font-bold select-none"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider mb-2">
+                        <span>Stock Actual (Piso)</span>
+                        <span class="text-accent-emerald bg-accent-emerald/10 px-2 py-0.5 rounded-md font-semibold">+4.2% hoy</span>
+                    </div>
+                    <div class="text-3xl font-extrabold text-white mb-1" id="metric-stock">4,820</div>
+                    <div class="text-xs text-slate-400 flex items-center"><i class="fa-solid fa-circle-check text-accent-emerald mr-1.5"></i> Unidades verificadas en planta</div>
+                </div>
+
+                <!-- Salidas del Día -->
+                <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-slate-700/30 text-7xl font-bold select-none"><i class="fa-solid fa-truck-fast"></i></div>
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider mb-2">
+                        <span>Salidas del Día</span>
+                        <span class="text-accent-blue bg-accent-blue/10 px-2 py-0.5 rounded-md font-semibold">Embarques OK</span>
+                    </div>
+                    <div class="text-3xl font-extrabold text-white mb-1" id="metric-shipments">640</div>
+                    <div class="text-xs text-slate-400 flex items-center"><i class="fa-solid fa-clock text-accent-blue mr-1.5"></i> Último despacho hace 2 min</div>
+                </div>
+
+                <!-- Control de Merma -->
+                <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-slate-700/30 text-7xl font-bold select-none"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider mb-2">
+                        <span>Control de Merma</span>
+                        <span class="text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded-md font-semibold">Objetivo &lt; 0.05%</span>
+                    </div>
+                    <div class="text-3xl font-extrabold text-white mb-1">0.01%</div>
+                    <div class="text-xs text-slate-400 flex items-center"><i class="fa-solid fa-circle-check text-accent-cyan mr-1.5"></i> Discrepancia mínima</div>
+                </div>
+
+                <!-- Tasa de Lectura RFID -->
+                <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 text-slate-700/30 text-7xl font-bold select-none"><i class="fa-solid fa-gauge-high"></i></div>
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider mb-2">
+                        <span>Tasa Lectura RFID</span>
+                        <span class="text-accent-amber bg-accent-amber/10 px-2 py-0.5 rounded-md font-semibold">UHF 915 MHz</span>
+                    </div>
+                    <div class="text-3xl font-extrabold text-white mb-1">0.32s</div>
+                    <div class="text-xs text-slate-400 flex items-center"><i class="fa-solid fa-bolt text-accent-amber mr-1.5"></i> Lote multietiqueta procesado</div>
+                </div>
+            </div>
+
+            <!-- Real-time Live Log & Antenna Status Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Antenna Status Overview -->
+                <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Estado de Antenas</h2>
+                        <span class="text-xs text-accent-emerald font-medium"><i class="fa-solid fa-circle text-[8px] mr-1"></i>3 Activas</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-industrial-900/60 border border-slate-700/60 p-3.5 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-accent-emerald/10 text-accent-emerald flex items-center justify-center font-bold text-sm">A1</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Andén 1 - Embarques</div>
+                                    <div class="text-[10px] text-slate-400">Portal Sur • UHF Conectado</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 bg-accent-emerald/10 text-accent-emerald text-[10px] font-semibold rounded-md">OK</span>
+                        </div>
+                        <div class="bg-industrial-900/60 border border-slate-700/60 p-3.5 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-accent-blue/10 text-accent-blue flex items-center justify-center font-bold text-sm">A2</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Línea de Producción 2</div>
+                                    <div class="text-[10px] text-slate-400">Ensamble • UHF Conectado</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 bg-accent-emerald/10 text-accent-emerald text-[10px] font-semibold rounded-md">OK</span>
+                        </div>
+                        <div class="bg-industrial-900/60 border border-slate-700/60 p-3.5 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-accent-cyan/10 text-accent-cyan flex items-center justify-center font-bold text-sm">A3</div>
+                                <div>
+                                    <div class="text-xs font-bold text-white">Almacén Materia Prima</div>
+                                    <div class="text-[10px] text-slate-400">Recepción • UHF Conectado</div>
+                                </div>
+                            </div>
+                            <span class="px-2 py-1 bg-accent-emerald/10 text-accent-emerald text-[10px] font-semibold rounded-md">OK</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live RFID Bitácora Log -->
+                <div class="lg:col-span-2 bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300">Bitácora de Lecturas EPC en Tiempo Real</h2>
+                            <span class="bg-accent-emerald/20 text-accent-emerald text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">LIVE</span>
+                        </div>
+                        <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-white transition"><i class="fa-solid fa-trash-can mr-1"></i>Limpiar Bitácora</button>
+                    </div>
+                    
+                    <div class="overflow-x-auto flex-grow">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-industrial-900/80 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+                                <tr>
+                                    <th class="py-2.5 px-3 rounded-l-lg">Código EPC (Tag)</th>
+                                    <th class="py-2.5 px-3">Producto / Tarima</th>
+                                    <th class="py-2.5 px-3">Antena / Ubicación</th>
+                                    <th class="py-2.5 px-3">Movimiento</th>
+                                    <th class="py-2.5 px-3 text-right rounded-r-lg">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rfid-log-tbody" class="divide-y divide-slate-800/80">
+                                <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 2: CATÁLOGO DE PRODUCTOS ==================== -->
+        <section id="view-catalog" class="space-y-6 hidden">
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-bold text-white">Catálogo de Productos y Materiales</h1>
+                    <p class="text-xs text-slate-400">Administra la base de datos estática vinculada al sistema de inventario industrial</p>
+                </div>
+                <button onclick="openProductModal()" class="px-4 py-2 bg-accent-blue hover:bg-blue-600 text-white font-semibold text-xs rounded-xl shadow-lg shadow-accent-blue/20 transition flex items-center space-x-2 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Registrar Nuevo Producto</span>
+                </button>
+            </div>
+
+            <!-- Products Table -->
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-industrial-900/80 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+                            <tr>
+                                <th class="py-3 px-3 rounded-l-lg">SKU / Código</th>
+                                <th class="py-3 px-3">Nombre de Producto</th>
+                                <th class="py-3 px-3">Descripción</th>
+                                <th class="py-3 px-3">Unidad de Medida</th>
+                                <th class="py-3 px-3 text-right rounded-r-lg">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-tbody" class="divide-y divide-slate-800/80">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 3: VÍNCULO ETIQUETAS RFID (EPC) ==================== -->
+        <section id="view-tags" class="space-y-6 hidden">
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-bold text-white">Asociación de Etiquetas RFID (EPC)</h1>
+                    <p class="text-xs text-slate-400">Vincula un código EPC físico de la etiqueta UHF con un producto registrado en el catálogo</p>
+                </div>
+                <button onclick="openTagModal()" class="px-4 py-2 bg-accent-emerald hover:bg-emerald-600 text-industrial-900 font-semibold text-xs rounded-xl shadow-lg shadow-accent-emerald/20 transition flex items-center space-x-2 w-full sm:w-auto justify-center">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Asociar Nueva Etiqueta</span>
+                </button>
+            </div>
+
+            <!-- Tags Table -->
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-industrial-900/80 text-slate-400 uppercase text-[10px] font-semibold tracking-wider">
+                            <tr>
+                                <th class="py-3 px-3 rounded-l-lg">Código EPC Único</th>
+                                <th class="py-3 px-3">Producto Asociado</th>
+                                <th class="py-3 px-3">SKU</th>
+                                <th class="py-3 px-3">Fecha de Vinculación</th>
+                                <th class="py-3 px-3 text-right rounded-r-lg">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tags-tbody" class="divide-y divide-slate-800/80">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 4: ARQUITECTURA DB Y CÓDIGO ==================== -->
+        <section id="view-architecture" class="space-y-6 hidden">
+            <div class="bg-industrial-800 border border-slate-700/80 rounded-2xl p-6 shadow-lg space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 bg-accent-cyan/10 text-accent-cyan rounded-xl border border-accent-cyan/20">
+                        <i class="fa-solid fa-database text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white">Arquitectura de Base de Datos y Sincronización en Tiempo Real</h1>
+                        <p class="text-xs text-slate-400">Implementación recomendada para Firebase Firestore o Supabase con antenas RFID</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                    <div class="bg-industrial-900/80 border border-slate-700/60 p-4 rounded-xl space-y-2">
+                        <div class="text-accent-emerald font-bold text-sm flex items-center"><i class="fa-solid fa-1 mr-2"></i>Catálogos Estáticos</div>
+                        <p class="text-xs text-slate-400">Almacena información fija de productos y vinculaciones EPC para consulta rápida durante la lectura.</p>
+                    </div>
+                    <div class="bg-industrial-900/80 border border-slate-700/60 p-4 rounded-xl space-y-2">
+                        <div class="text-accent-blue font-bold text-sm flex items-center"><i class="fa-solid fa-2 mr-2"></i>Backend Colector</div>
+                        <p class="text-xs text-slate-400">Script local (Python / Node.js) conectado por TCP/IP al lector RFID que empuja transacciones al cloud.</p>
+                    </div>
+                    <div class="bg-industrial-900/80 border border-slate-700/60 p-4 rounded-xl space-y-2">
+                        <div class="text-accent-cyan font-bold text-sm flex items-center"><i class="fa-solid fa-3 mr-2"></i>Web Listener</div>
+                        <p class="text-xs text-slate-400">Uso de <code class="text-accent-amber">onSnapshot</code> para actualizar el monitor en vivo sin refrescar el navegador.</p>
+                    </div>
+                </div>
+
+                <!-- Code block example -->
+                <div class="pt-4">
+                    <div class="text-xs font-semibold text-slate-300 mb-2">Ejemplo de código JavaScript para escuchar lecturas en tiempo real con Firebase Firestore:</div>
+                    <div class="bg-industrial-900 border border-slate-700 rounded-xl p-4 overflow-x-auto">
+                        <pre class="text-[11px] text-slate-300 font-mono leading-relaxed"><code>import { initializeApp } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js";
+import { getFirestore, collection, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-firestore.js";
+
+const firebaseConfig = { apiKey: "TU_API_KEY", projectId: "industria-rfid" };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Escuchar lecturas RFID en tiempo real
+const q = query(collection(db, "lecturas_rfid"), orderBy("timestamp", "desc"), limit(10));
+onSnapshot(q, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+            const data = change.doc.data();
+            console.log("Nueva lectura RFID detectada:", data.epc, data.antena);
+            // Actualizar interfaz web automáticamente
+        }
+    });
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+    <!-- Product Modal -->
+    <div id="product-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-industrial-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white">Registrar Nuevo Producto</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="product-form" onsubmit="handleProductSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">SKU / Código de Parte</label>
+                    <input type="text" id="prod-sku" required placeholder="Ej. SKU-TAR-901" class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-blue">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Nombre del Producto</label>
+                    <input type="text" id="prod-name" required placeholder="Ej. Tarima Cajas de Cartón Corrugado" class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-blue">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Descripción</label>
+                    <textarea id="prod-desc" rows="2" placeholder="Detalle técnico o especificación..." class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-blue"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Unidad de Medida</label>
+                    <select id="prod-unit" class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-blue">
+                        <option value="Tarima">Tarima</option>
+                        <option value="Caja">Caja</option>
+                        <option value="Pieza">Pieza</option>
+                        <option value="Kilogramo">Kilogramo</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeProductModal()" class="px-4 py-2 bg-industrial-700 hover:bg-industrial-600 text-slate-300 text-xs font-semibold rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-accent-blue hover:bg-blue-600 text-white text-xs font-semibold rounded-xl transition">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tag Modal -->
+    <div id="tag-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-industrial-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white">Vincular Etiqueta RFID (EPC)</h3>
+                <button onclick="closeTagModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="tag-form" onsubmit="handleTagSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Código EPC Único (RFID Tag)</label>
+                    <input type="text" id="tag-epc" required placeholder="Ej. E2806810200000349A" class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-emerald font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Seleccionar Producto Registrado</label>
+                    <select id="tag-product-select" required class="w-full bg-industrial-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-emerald">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeTagModal()" class="px-4 py-2 bg-industrial-700 hover:bg-industrial-600 text-slate-300 text-xs font-semibold rounded-xl transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-accent-emerald hover:bg-emerald-600 text-industrial-900 text-xs font-bold rounded-xl transition">Vincular Etiqueta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Box -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-industrial-800 border border-accent-emerald text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-accent-emerald text-lg"></i>
+        <div>
+            <div id="toast-title" class="text-xs font-bold">Operación exitosa</div>
+            <div id="toast-desc" class="text-[10px] text-slate-400">Los datos se han guardado correctamente.</div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Initial application state data
+        let products = [
+            { sku: "SKU-TAR-402", name: "Tarima de Cajas de Cartón", desc: "Corrugado pesado para exportación", unit: "Tarima" },
+            { sku: "SKU-BOT-108", name: "Contenedor de Envases PET", desc: "Lote de 1,200 botellas plásticas", unit: "Caja" },
+            { sku: "SKU-MET-880", name: "Rollo de Lámina de Acero", desc: "Calibre 14 para línea de estampado", unit: "Pieza" }
+        ];
+
+        let tags = [
+            { epc: "E2806810200000349A", sku: "SKU-TAR-402", productName: "Tarima de Cajas de Cartón", date: "10/10/2026 14:20" },
+            { epc: "E280681020000034FB", sku: "SKU-BOT-108", productName: "Contenedor de Envases PET", date: "10/10/2026 15:10" }
+        ];
+
+        let rfidLogs = [
+            { epc: "E2806810200000349A", product: "Tarima de Cajas de Cartón", antenna: "Andén 1 - Embarques", type: "Salida", color: "text-accent-blue", time: "Hace 2 min" },
+            { epc: "E280681020000034FB", product: "Contenedor de Envases PET", antenna: "Línea de Producción 2", type: "Entrada", color: "text-accent-emerald", time: "Hace 6 min" },
+            { epc: "E280681020000032CD", product: "Rollo de Lámina de Acero", antenna: "Almacén Materia Prima", type: "Entrada", color: "text-accent-emerald", time: "Hace 14 min" }
+        ];
+
+        let simulationActive = false;
+        let simulationInterval = null;
+        let metricStockCount = 4820;
+        let metricShipmentsCount = 640;
+
+        // Navigation tab switching
+        function switchTab(tabId) {
+            const views = ['dashboard', 'catalog', 'tags', 'architecture'];
+            views.forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) {
+                    navBtn.className = "px-3 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:text-white hover:bg-industrial-700/30";
+                }
+                const mobBtn = document.getElementById(`mob-${v}`);
+                if (mobBtn) {
+                    mobBtn.className = "text-slate-400 font-medium px-2 py-1";
+                }
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.className = "px-3 py-2 rounded-lg text-sm font-medium transition text-accent-emerald bg-industrial-700/60 border border-slate-700";
+            }
+            const activeMob = document.getElementById(`mob-${tabId}`);
+            if (activeMob) {
+                activeMob.className = "text-accent-emerald font-medium px-2 py-1";
+            }
+
+            if (tabId === 'catalog') renderProductsTable();
+            if (tabId === 'tags') renderTagsTable();
+        }
+
+        // Render RFID Log Table
+        function renderLogs() {
+            const tbody = document.getElementById('rfid-log-tbody');
+            tbody.innerHTML = rfidLogs.map(log => `
+                <tr class="hover:bg-industrial-700/30 transition">
+                    <td class="py-3 px-3 font-mono text-accent-cyan font-medium">${log.epc}</td>
+                    <td class="py-3 px-3 font-medium text-white">${log.product}</td>
+                    <td class="py-3 px-3 text-slate-300"><i class="fa-solid fa-tower-broadcast mr-1 text-slate-500"></i>${log.antenna}</td>
+                    <td class="py-3 px-3"><span class="font-semibold ${log.color}">${log.type}</span></td>
+                    <td class="py-3 px-3 text-right text-slate-400">${log.time}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearLogs() {
+            rfidLogs = [];
+            renderLogs();
+            showToast("Bitácora Limpia", "Se han borrado los registros temporales del monitor.");
+        }
+
+        // Simulate RFID Read Event
+        function simulateRfidRead() {
+            const sampleProducts = [
+                { name: "Tarima de Cajas de Cartón", sku: "SKU-TAR-402", antenna: "Andén 1 - Embarques", type: "Salida", color: "text-accent-blue" },
+                { name: "Contenedor de Envases PET", sku: "SKU-BOT-108", antenna: "Línea de Producción 2", type: "Entrada", color: "text-accent-emerald" },
+                { name: "Rollo de Lámina de Acero", sku: "SKU-MET-880", antenna: "Almacén Materia Prima", type: "Entrada", color: "text-accent-emerald" }
+            ];
+            const randomProd = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
+            const randomEpc = "E280" + Math.floor(100000000000000 + Math.random() * 900000000000000);
+
+            rfidLogs.unshift({
+                epc: randomEpc,
+                product: randomProd.name,
+                antenna: randomProd.antenna,
+                type: randomProd.type,
+                color: randomProd.color,
+                time: "Justo ahora"
+            });
+
+            if (rfidLogs.length > 15) rfidLogs.pop();
+
+            if (randomProd.type === "Salida") {
+                metricShipmentsCount++;
+                metricStockCount -= 10;
+            } else {
+                metricStockCount += 10;
+            }
+
+            document.getElementById('metric-stock').innerText = metricStockCount.toLocaleString();
+            document.getElementById('metric-shipments').innerText = metricShipmentsCount.toLocaleString();
+
+            renderLogs();
+        }
+
+        // Toggle Live Simulation Mode
+        function toggleSimulation() {
+            simulationActive = !simulationActive;
+            const ball = document.getElementById('sim-toggle-ball');
+            const btn = document.getElementById('sim-toggle-btn');
+            const statusText = document.getElementById('system-status-text');
+
+            if (simulationActive) {
+                ball.classList.add('translate-x-5');
+                btn.classList.add('bg-accent-emerald');
+                statusText.innerText = "Simulación Activa (En Vivo)";
+                showToast("Simulación Iniciada", "Las antenas RFID están emitiendo lecturas automáticas.");
+                simulationInterval = setInterval(simulateRfidRead, 4000);
+            } else {
+                ball.classList.remove('translate-x-5');
+                btn.classList.remove('bg-accent-emerald');
+                statusText.innerText = "Sistema En Línea";
+                showToast("Simulación Pausada", "El monitor se encuentra en modo estático.");
+                clearInterval(simulationInterval);
+            }
+        }
+
+        // Products CRUD handling
+        function renderProductsTable() {
+            const tbody = document.getElementById('products-tbody');
+            tbody.innerHTML = products.map((p, idx) => `
+                <tr class="hover:bg-industrial-700/30 transition">
+                    <td class="py-3 px-3 font-mono font-bold text-accent-blue">${p.sku}</td>
+                    <td class="py-3 px-3 font-medium text-white">${p.name}</td>
+                    <td class="py-3 px-3 text-slate-300">${p.desc}</td>
+                    <td class="py-3 px-3"><span class="bg-industrial-900 px-2.5 py-1 rounded-md text-slate-300 border border-slate-700">${p.unit}</span></td>
+                    <td class="py-3 px-3 text-right">
+                        <button onclick="deleteProduct(${idx})" class="text-accent-rose hover:text-red-400 p-1.5 rounded-lg hover:bg-accent-rose/10 transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openProductModal() {
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+            document.getElementById('product-form').reset();
+        }
+
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            const sku = document.getElementById('prod-sku').value;
+            const name = document.getElementById('prod-name').value;
+            const desc = document.getElementById('prod-desc').value;
+            const unit = document.getElementById('prod-unit').value;
+
+            products.push({ sku, name, desc, unit });
+            closeProductModal();
+            renderProductsTable();
+            showToast("Producto Registrado", `Se ha agregado ${name} al catálogo.`);
+        }
+
+        function deleteProduct(index) {
+            const removed = products.splice(index, 1);
+            renderProductsTable();
+            showToast("Producto Eliminado", "Se ha actualizado el catálogo de la PyME.");
+        }
+
+        // Tags CRUD handling
+        function renderTagsTable() {
+            const tbody = document.getElementById('tags-tbody');
+            tbody.innerHTML = tags.map((t, idx) => `
+                <tr class="hover:bg-industrial-700/30 transition">
+                    <td class="py-3 px-3 font-mono text-accent-cyan font-bold">${t.epc}</td>
+                    <td class="py-3 px-3 font-medium text-white">${t.productName}</td>
+                    <td class="py-3 px-3 font-mono text-slate-300">${t.sku}</td>
+                    <td class="py-3 px-3 text-slate-400">${t.date}</td>
+                    <td class="py-3 px-3 text-right">
+                        <button onclick="deleteTag(${idx})" class="text-accent-rose hover:text-red-400 p-1.5 rounded-lg hover:bg-accent-rose/10 transition"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openTagModal() {
+            const select = document.getElementById('tag-product-select');
+            select.innerHTML = products.map(p => `<option value="${p.sku}">${p.name} (${p.sku})</option>`).join('');
+            document.getElementById('tag-modal').classList.remove('hidden');
+        }
+
+        function closeTagModal() {
+            document.getElementById('tag-modal').classList.add('hidden');
+            document.getElementById('tag-form').reset();
+        }
+
+        function handleTagSubmit(e) {
+            e.preventDefault();
+            const epc = document.getElementById('tag-epc').value;
+            const sku = document.getElementById('tag-product-select').value;
+            const prod = products.find(p => p.sku === sku);
+
+            tags.push({
+                epc,
+                sku,
+                productName: prod ? prod.name : "Desconocido",
+                date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            });
+
+            closeTagModal();
+            renderTagsTable();
+            showToast("Etiqueta Vinculada", `El tag EPC ${epc} ahora está asociado a ${prod.name}.`);
+        }
+
+        function deleteTag(index) {
+            tags.splice(index, 1);
+            renderTagsTable();
+            showToast("Vínculo Eliminado", "Se ha desasociado la etiqueta RFID.");
+        }
+
+        // Toast Notification Helper
+        function showToast(title, desc) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title;
+            document.getElementById('toast-desc').innerText = desc;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        // Initialize App on Window Load
+        window.onload = function() {
+            renderLogs();
+            renderProductsTable();
+            renderTagsTable();
+        };
+    </script>
+</body>
+</html>
