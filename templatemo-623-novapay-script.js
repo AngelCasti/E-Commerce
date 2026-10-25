@@ -21,6 +21,161 @@
 ================================================================================
 */
 
+//Inciar sesion en Login
+// Función para alternar la visibilidad de la contraseña
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const isPassword = input.getAttribute('type') === 'password';
+  input.setAttribute('type', isPassword ? 'text' : 'password');
+  btn.classList.toggle('active', isPassword);
+
+  // SVG del ojo abierto vs ojo tachado
+  if (isPassword) {
+    // Ojo tachado (ocultar)
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+      </svg>
+    `;
+  } else {
+    // Ojo normal (mostrar)
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    `;
+  }
+}
+
+// --- LÓGICA DE AUTENTICACIÓN CON SUPABASE ---
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const navAuthBtn = document.getElementById('navAuthBtn');
+const authModal = document.getElementById('authModal');
+
+// 1. Registrar un nuevo usuario
+registerForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const name = document.getElementById('regName').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      data: { full_name: name } // Guarda el nombre en los metadatos del usuario
+    }
+  });
+
+  if (error) {
+    alert('Error al registrarse: ' + error.message);
+  } else {
+    alert('¡Registro exitoso! Revisa tu correo para confirmar o inicia sesión.');
+    authModal.classList.remove('open');
+    registerForm.reset();
+  }
+});
+
+// 2. Iniciar sesión con un usuario existente
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    alert('Credenciales incorrectas: ' + error.message);
+  } else {
+    alert('¡Bienvenido de nuevo!');
+    authModal.classList.remove('open');
+    loginForm.reset();
+    checkUserSession(); // Actualiza la interfaz para mostrar el perfil
+  }
+});
+
+// 3. Comprobar si hay una sesión activa y mostrar el perfil en el botón
+async function checkUserSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  
+  if (session) {
+    const user = session.user;
+    // Extraemos el nombre guardado o el correo si no hay nombre
+    const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+    
+    // Cambiamos el botón de "Sign in" por el nombre del usuario (simulando su perfil)
+    navAuthBtn.textContent = `👤 ${displayName}`;
+    navAuthBtn.href = "#profile"; // Podrías redirigirlo o abrir un menú de perfil
+    
+    // Opcional: si dan clic y ya están logueados, podríamos preguntar si desean cerrar sesión
+    navAuthBtn.onclick = async (ev) => {
+      ev.preventDefault();
+      if (confirm('¿Deseas cerrar sesión?')) {
+        await supabaseClient.auth.signOut();
+        location.reload(); // Recarga la página para limpiar el estado
+      }
+    };
+  }
+}
+
+// Ejecutar la comprobación al cargar la página
+checkUserSession();
+
+
+
+// Abrir y cerrar el modal de Login/Registro
+const closeAuthModalBtn = document.getElementById('closeAuthModal');
+const openAuthBtns = document.querySelectorAll('.open-auth-btn');
+
+// Abrir Modal
+openAuthBtns.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    authModal.classList.add('open');
+  });
+});
+
+// Cerrar Modal al hacer clic en la (X)
+closeAuthModalBtn.addEventListener('click', () => {
+  authModal.classList.remove('open');
+});
+
+// Cerrar Modal al dar clic fuera de los límites del cuadro
+authModal.addEventListener('click', (e) => {
+  if (e.target === authModal) {
+    authModal.classList.remove('open');
+  }
+});
+
+// Alternar entre pestañas de Login y Registro
+function switchAuthTab(tab) {
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+  if (tab === 'login') {
+    loginForm.classList.add('active');
+    registerForm.classList.remove('active');
+    tabLoginBtn.classList.add('active');
+    tabRegisterBtn.classList.remove('active');
+  } else {
+    registerForm.classList.add('active');
+    loginForm.classList.remove('active');
+    tabRegisterBtn.classList.add('active');
+    tabLoginBtn.classList.remove('active');
+  }
+}
+//Es para el login lo de arriba - firmita Cruz Uwu
+
 const nav=document.getElementById('mainNav');
 const ticker=document.querySelector('.ticker');
 window.addEventListener('scroll',()=>{
