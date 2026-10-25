@@ -21,35 +21,6 @@
 ================================================================================
 */
 
-const tickerData=[
-  {sym:'BTC/USD',price:'$67,240',chg:'+2.14%',up:true},
-  {sym:'ETH/USD',price:'$3,480',chg:'+1.82%',up:true},
-  {sym:'EUR/USD',price:'1.0841',chg:'-0.12%',up:false},
-  {sym:'GBP/USD',price:'1.2620',chg:'+0.08%',up:true},
-  {sym:'USD/JPY',price:'154.32',chg:'+0.24%',up:false},
-  {sym:'S&P 500',price:'5,248',chg:'+0.62%',up:true},
-  {sym:'NASDAQ',price:'16,428',chg:'+0.91%',up:true},
-  {sym:'USD/SGD',price:'1.3420',chg:'-0.05%',up:false},
-  {sym:'AUD/USD',price:'0.6580',chg:'+0.18%',up:true},
-  {sym:'XAU/USD',price:'$2,318',chg:'+0.44%',up:true},
-];
-const track=document.getElementById('tickerTrack');
-[...tickerData,...tickerData].forEach(t=>{
-  const el=document.createElement('div');
-  el.className='ticker-item';
-  el.innerHTML=`<span class="ticker-sym">${t.sym}</span><span class="ticker-price">${t.price}</span><span class="${t.up?'ticker-up':'ticker-dn'}">${t.chg}</span>`;
-  track.appendChild(el);
-});
-
-const logos=['Stripe','Shopify','Notion','Linear','Vercel','Figma','Supabase','Railway','Loom','Calendly','Webflow','Intercom'];
-const lt=document.getElementById('logosTrack');
-[...logos,...logos].forEach(l=>{
-  const el=document.createElement('div');
-  el.className='logo-item';
-  el.textContent=l;
-  lt.appendChild(el);
-});
-
 const nav=document.getElementById('mainNav');
 const ticker=document.querySelector('.ticker');
 window.addEventListener('scroll',()=>{
@@ -190,13 +161,13 @@ function togglePricing(){
 }
 
 const faqs=[
-  {q:'How quickly can I start sending payments?',a:'You can be up and running in under 10 minutes. Create your account, verify your identity, and make your first transfer — no paperwork, no waiting.'},
-  {q:'What are the transaction fees?',a:'Starter accounts have zero fees up to $10K monthly volume. Growth and Enterprise plans have volume-based pricing starting at 0.5% per transaction, with no monthly minimums or hidden charges.'},
-  {q:'Which countries and currencies do you support?',a:'NovaPay supports payments in 190+ countries and holds balances in 35+ currencies including USD, EUR, GBP, JPY, SGD, AUD, CAD, CHF, and more. New currencies are added quarterly.'},
-  {q:'How does NovaPay keep my money safe?',a:"Your funds are held in regulated custodian accounts, fully segregated from NovaPay's operating capital. We're SOC 2 Type II certified, PCI DSS Level 1 compliant, and use 256-bit AES encryption on all data."},
-  {q:'Can I integrate NovaPay with my existing tools?',a:'Yes — our REST API and webhooks integrate with Xero, QuickBooks, Stripe, Shopify, and 200+ other platforms. We also offer native plugins for major e-commerce and accounting tools.'},
-  {q:'What support is available?',a:'Starter plans include email support with 24-hour response times. Growth plans get priority chat support. Enterprise clients receive a dedicated account manager and 24/7 phone support with guaranteed SLAs.'},
-  {q:'Can I use NovaPay for payroll?',a:'Absolutely. Our batch payment feature lets you pay hundreds of employees or contractors in multiple currencies simultaneously, with full audit logs and auto-generated payment reports.'},
+  {q:'1. How can automation help my business?',a:'Automation reduces repetitive tasks, saves time, and minimizes human errors. It allows your team to focus on more important activities while routine processes run automatically.'},
+  {q:'2. How much does an automation project cost?',a:'Pricing depends on the complexity and requirements of your project. We provide a personalized quote after evaluating your business needs. You pay for the solution, not a mandatory monthly subscription.'},
+  {q:'3. How long does it take to implement a solution?',a:'Implementation time depends on the project. Simple automations may take a few days, while more complex solutions may require several weeks.'},
+  {q:'4. Do I need technical knowledge to use your solutions?',a:"Not at all. Our solutions are designed to be simple and user-friendly. We also provide guidance to help your team use them effectively."},
+  {q:'5. Can you work with the tools my business already uses?',a:'Yes. We can evaluate integration options for tools such as Excel, email platforms, databases, and business management systems, depending on their compatibility.'},
+  {q:'6. What happens if I need changes or support?',a:'We offer additional support, maintenance, and updates based on your needs. New features or modifications can be quoted separately.'},
+  {q:'7. How do I get started with FlowSync?',a:"Simply tell us which tasks are taking too much time. We'll review your needs, recommend a solution, and provide a quote before starting development."},
 ];
 const faqList=document.getElementById('faqList');
 faqs.forEach((f,i)=>{
