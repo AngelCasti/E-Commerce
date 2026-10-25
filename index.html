@@ -188,7 +188,7 @@
       <p class="section-sub">Select the type of service you need, along with the date and time that best fit your schedule.</p>
     </div>
 
-    <form id="scheduleAppointmentForm" onsubmit="event.preventDefault(); alert('Appointment requested successfully! We will send a confirmation to your email.');" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
+    <form id="scheduleAppointmentForm" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 32px; display: flex; flex-direction: column; gap: 20px;">
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
         <!-- Full Name -->
@@ -677,6 +677,69 @@
   </div>
 </footer>
 
+<!-- Supabase SDK CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  // Replace these with your actual Supabase project credentials from Project Settings > API
+  const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+  const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+  
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('scheduleAppointmentForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Capture values from your form fields
+    const clientName = document.getElementById('clientName').value;
+    const clientEmail = document.getElementById('clientEmail').value;
+    const clientCompany = document.getElementById('clientCompany').value;
+    const appointmentType = document.getElementById('appointmentType').value;
+    const appointmentDate = document.getElementById('appointmentDate').value;
+    const appointmentTime = document.getElementById('appointmentTime').value;
+    const modality = document.querySelector('input[name="modality"]:checked')?.value || 'virtual';
+    const appointmentNotes = document.getElementById('appointmentNotes').value;
+
+    // Optional: Give visual feedback that it's submitting
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Scheduling...';
+    submitBtn.disabled = true;
+
+    try {
+      // Insert data into your Supabase table
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([
+          {
+            client_name: clientName,
+            client_email: clientEmail,
+            client_company: clientCompany,
+            appointment_type: appointmentType,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            modality: modality,
+            appointment_notes: appointmentNotes
+          }
+        ]);
+
+      if (error) throw error;
+
+      alert('Appointment requested successfully! We will send a confirmation to your email.');
+      form.reset();
+    } catch (error) {
+      console.error('Error saving appointment:', error.message);
+      alert('There was an error saving your appointment. Please check your network or credentials.');
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+
 <script src="templatemo-623-novapay-script.js"></script>
+
 </body>
 </html>
