@@ -830,19 +830,35 @@
     }
 
     // ==========================================
-    // 2. MÓDULO DE CREAR CUENTA (Register)
+    // MÓDULO DE CREAR CUENTA (Register)
     // ==========================================
-    const registerForm = document.getElementById('registerForm'); // Asegúrate de que tu formulario de registro tenga este ID
+    const registerForm = document.getElementById('registerForm');
     if (registerForm) {
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('registerEmail')?.value;
-        const password = document.getElementById('registerPassword')?.value;
+        
+        // Buscamos los valores probando varios nombres comunes de ID por si acaso
+        const name = document.getElementById('registerName')?.value || document.getElementById('name')?.value || document.getElementById('fullName')?.value || '';
+        const email = document.getElementById('registerEmail')?.value || document.getElementById('email')?.value || '';
+        const password = document.getElementById('registerPassword')?.value || document.getElementById('password')?.value || '';
 
-        if (!email || !password) return alert('Por favor llena todos los campos.');
+        // Imprimimos en consola para verificar qué está leyendo (puedes ver esto con F12)
+        console.log("Intentando registrar con:", { name, email, password });
+
+        if (!email || !password) {
+          alert('Por favor llena todos los campos.');
+          return;
+        }
 
         try {
-          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          const { data, error } = await supabaseClient.auth.signUp({ 
+            email, 
+            password,
+            options: {
+              data: { full_name: name } // Guarda el nombre en los metadatos de Supabase Auth
+            }
+          });
+          
           if (error) throw error;
           
           alert('¡Cuenta creada con éxito! Revisa tu correo electrónico para confirmar.');
