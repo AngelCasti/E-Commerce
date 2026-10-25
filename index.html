@@ -829,34 +829,74 @@
       });
     }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // ==========================================
-    // MÓDULO DE CREAR CUENTA (Register)
+    // 2. MÓDULO DE INICIO DE SESIÓN (Login) Seguro
+    // ==========================================
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Busca el input de correo de forma flexible (por ID o por su tipo)
+        const emailInput = loginForm.querySelector('#loginEmail') || loginForm.querySelector('#email') || loginForm.querySelector('input[type="email"]');
+        // Busca el input de contraseña de forma flexible
+        const passwordInput = loginForm.querySelector('#loginPassword') || loginForm.querySelector('#password') || loginForm.querySelector('input[type="password"]');
+
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+
+        console.log("Intentando iniciar sesión con:", email);
+
+        if (!email || !password) {
+          return alert('Por favor ingresa correo y contraseña.');
+        }
+
+        try {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          alert('¡Bienvenido de nuevo!');
+          // window.location.href = 'index.html'; // Descomenta cuando quieras redirigir
+        } catch (err) {
+          console.error('Error en login:', err.message);
+          alert('Error al iniciar sesión: ' + err.message);
+        }
+      });
+    }
+
+    // ==========================================
+    // 3. MÓDULO DE CREAR CUENTA (Register) Seguro
     // ==========================================
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        // Buscamos los valores probando varios nombres comunes de ID por si acaso
-        const name = document.getElementById('registerName')?.value || document.getElementById('name')?.value || document.getElementById('fullName')?.value || '';
-        const email = document.getElementById('registerEmail')?.value || document.getElementById('email')?.value || '';
-        const password = document.getElementById('registerPassword')?.value || document.getElementById('password')?.value || '';
+        const nameInput = registerForm.querySelector('#registerName') || registerForm.querySelector('#name') || registerForm.querySelector('input[placeholder*="Name" i]');
+        const emailInput = registerForm.querySelector('#registerEmail') || registerForm.querySelector('#email') || registerForm.querySelector('input[type="email"]');
+        const passwordInput = registerForm.querySelector('#registerPassword') || registerForm.querySelector('#password') || registerForm.querySelector('input[type="password"]');
 
-        // Imprimimos en consola para verificar qué está leyendo (puedes ver esto con F12)
-        console.log("Intentando registrar con:", { name, email, password });
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+
+        console.log("Intentando registrar:", { name, email });
 
         if (!email || !password) {
-          alert('Por favor llena todos los campos.');
-          return;
+          return alert('Por favor llena todos los campos obligatorios.');
         }
 
         try {
           const { data, error } = await supabaseClient.auth.signUp({ 
             email, 
             password,
-            options: {
-              data: { full_name: name } // Guarda el nombre en los metadatos de Supabase Auth
-            }
+            options: { data: { full_name: name } }
           });
           
           if (error) throw error;
@@ -869,32 +909,6 @@
         }
       });
     }
-
-    // ==========================================
-    // 3. MÓDULO DE INICIO DE SESIÓN (Login)
-    // ==========================================
-    const loginForm = document.getElementById('loginForm'); // Asegúrate de que tu formulario de login tenga este ID
-    if (loginForm) {
-      loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail')?.value;
-        const password = document.getElementById('loginPassword')?.value;
-
-        if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
-
-        try {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-          if (error) throw error;
-
-          alert('¡Bienvenido de nuevo!');
-          // window.location.href = 'index.html'; // Descomenta si quieres redirigir al iniciar sesión
-        } catch (err) {
-          console.error('Error en login:', err.message);
-          alert('Error al iniciar sesión: Verifíca tus credenciales.');
-        }
-      });
-    }
-
   });
 </script>
 
