@@ -738,9 +738,7 @@
 
 <!-- Tus scripts de Supabase y funciones van después de esto -->
 <!-- Superbase Login -->
-  // ==========================================
-  // AUTENTICACIÓN CON LA TABLA userInfo
-  // ==========================================
+  <script>
   const loginForm = document.getElementById('loginForm');
   const registerForm = document.getElementById('registerForm');
   const navAuthBtn = document.getElementById('navAuthBtn');
@@ -821,7 +819,8 @@
 
   // Ejecutar verificación de sesión al cargar
   checkUserSession();
-
+  </script>
+    
 <!-- Supabase SDK CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
