@@ -20,54 +20,69 @@
 ================================================================================
 -->
 <script>
-  // Variable de estado de sesión
-  let isLoggedIn = false;
+  // Variable global de estado de sesión
+  window.isLoggedIn = false;
 
   document.addEventListener('DOMContentLoaded', () => {
     const navBtn = document.getElementById('navAuthBtn');
-    const loginForm = document.getElementById('loginForm');
-    const authModal = document.getElementById('authModal');
     const customMenu = document.getElementById('customAuthMenu');
+    const authModal = document.getElementById('authModal');
+    const loginForm = document.getElementById('loginForm');
 
-    // 1. Si ya inició sesión, al hacer clic en el botón superior se abre el menú en lugar del modal
+    // 1. Interceptamos el clic ANTES que el script viejo usando 'true' (fase de captura)
     if (navBtn) {
       navBtn.addEventListener('click', (e) => {
-        if (isLoggedIn) {
+        if (window.isLoggedIn) {
+          e.stopImmediatePropagation(); // ¡Frena al script viejo para que no abra el modal!
           e.preventDefault();
-          e.stopPropagation();
+          
           if (customMenu) {
-            customMenu.style.display = (customMenu.style.display === 'block') ? 'none' : 'block';
+            const isOpen = customMenu.style.display === 'block';
+            customMenu.style.display = isOpen ? 'none' : 'block';
           }
         }
-      }, true);
+      }, true); // <--- Este 'true' es la clave para adelantarnos al script viejo
     }
 
     // 2. Al enviar el formulario de login, activamos la sesión y cerramos el modal
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Evita que la página se recargue
-        isLoggedIn = true;   // Marcamos que ya inició sesión
+        e.preventDefault(); // Evita que recargue la página
+        window.isLoggedIn = true;
 
-        // Cambiamos el texto del botón superior a "Mi Cuenta"
+        // Cambiamos el texto del botón superior
         if (navBtn) navBtn.textContent = 'Mi Cuenta ▾';
 
-        // Ocultamos el modal de forma segura
+        // Ocultamos el modal de login
         if (authModal) {
           authModal.style.setProperty('display', 'none', 'important');
           authModal.classList.remove('active');
         }
+        
+        console.log("✅ Sesión iniciada. El botón ahora abrirá el menú desplegable.");
       });
     }
+
+    // 3. Cierra el menú desplegable si haces clic fuera de él
+    document.addEventListener('click', (e) => {
+      if (customMenu && navBtn) {
+        if (!customMenu.contains(e.target) && !navBtn.contains(e.target)) {
+          customMenu.style.display = 'none';
+        }
+      }
+    });
   });
 
-  // 3. Función global para cerrar sesión (llamada desde tu enlace de "Cerrar sesión")
+  // 4. Función global para cerrar sesión (llamada desde tu enlace de cerrar sesión)
   window.logoutUser = function() {
-    isLoggedIn = false;
+    window.isLoggedIn = false;
     const navBtn = document.getElementById('navAuthBtn');
     if (navBtn) navBtn.textContent = 'Sign in';
     
     const customMenu = document.getElementById('customAuthMenu');
     if (customMenu) customMenu.style.display = 'none';
+    
+    console.log("🔒 Sesión cerrada correctamente.");
   };
 </script>
 </head>
