@@ -28,7 +28,7 @@
 </div>
 
 <!-- NAV MENU NAVEGADOR -->
-<nav id="mainNav" style="position: relative; overflow: visible !important;">
+<nav id="mainNav">
   <a href="#" class="nav-logo">
     <div class="nav-logo-mark">
       <svg viewBox="0 0 16 16"><polyline points="2,12 6,7 10,9 14,4"/><circle cx="14" cy="4" r="1.5" fill="white" stroke="none"/></svg>
@@ -40,11 +40,15 @@
     <a href="#pricing">Services</a>
     <a href="#faq">FAQ</a>
   </div>
-  <div class="nav-cta">
-    <!-- Clic directo para abrir Iniciar Sesión sin menús ni intermediarios -->
-    <a href="#" class="btn-ghost" onclick="openDirectLogin(event)">Sign in</a>
+  <div class="nav-cta" style="position: relative;">
+    <!-- Botón principal que abre/cierra el menú flotante -->
+    <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
+    
+    <!-- Menú flotante -->
+    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 180px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+    </div>
   
-    <!-- Botones nativos ocultos para Bootstrap -->
+    <!-- Botones ocultos nativos que controlan los modales sin fallar -->
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
@@ -1287,12 +1291,44 @@
   };
 </script>
 
+<!-- Login -->
 <script>
-  function openDirectLogin(e) {
-    if (e) e.preventDefault();
-    const btn = document.getElementById('realLoginBtn');
-    if (btn) btn.click();
-  }
+  window.toggleAuthMenu = function(event) {
+    if (event) event.preventDefault();
+    const menu = document.getElementById('customAuthMenu');
+    if (!menu) return;
+    
+    if (menu.style.display === 'block') {
+      menu.style.display = 'none';
+    } else {
+      menu.innerHTML = `
+        <a href="#" onclick="openAuthModal('login'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
+        <a href="#" onclick="openAuthModal('register'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Registrarse</a>
+      `;
+      menu.style.display = 'block';
+    }
+  };
+
+  window.openAuthModal = function(type) {
+    const menu = document.getElementById('customAuthMenu');
+    if (menu) menu.style.display = 'none';
+    
+    if (type === 'login') {
+      const loginBtn = document.getElementById('realLoginBtn');
+      if (loginBtn) loginBtn.click();
+    } else if (type === 'register') {
+      const regBtn = document.getElementById('realRegisterBtn');
+      if (regBtn) regBtn.click();
+    }
+  };
+
+  document.addEventListener('click', (e) => {
+    const navCta = document.querySelector('.nav-cta');
+    const menu = document.getElementById('customAuthMenu');
+    if (navCta && menu && !navCta.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
 </script>
   
 </body>
