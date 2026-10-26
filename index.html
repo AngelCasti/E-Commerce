@@ -46,10 +46,11 @@
       <option value="login" style="color: #000;">Iniciar Sesión</option>
       <option value="register" style="color: #000;">Registrarse</option>
     </select>
+  
+    <!-- Botones ocultos nativos para disparar los modales sin fallos -->
+    <button type="button" id="triggerLogin" data-bs-toggle="modal" data-bs-target="#loginModal" style="display: none;"></button>
+    <button type="button" id="triggerRegister" data-bs-toggle="modal" data-bs-target="#registerModal" style="display: none;"></button>
   </div>
-  <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
 </nav>
 
 <!-- MOBILE MENU -->
@@ -822,33 +823,25 @@
       }
 
       // ==========================================
-      // MANEJADOR DE EVENTOS DEL SELECT
+      // MANEJADOR DE EVENTOS DEL SELECT (Nativo e Infalible)
       // ==========================================
       if (authSelect) {
         authSelect.addEventListener('change', async (e) => {
           const value = e.target.value;
           
           if (value === 'login') {
-            const loginModalEl = document.getElementById('loginModal');
-            if (loginModalEl) {
-              const modal = bootstrap.Modal.getOrCreateInstance(loginModalEl);
-              modal.show();
-            }
-            authSelect.value = ""; // Limpiar selección
+            document.getElementById('triggerLogin').click();
+            authSelect.value = ""; // Restablece el select
           } else if (value === 'register') {
-            const registerModalEl = document.getElementById('registerModal');
-            if (registerModalEl) {
-              const modal = bootstrap.Modal.getOrCreateInstance(registerModalEl);
-              modal.show();
-            }
-            authSelect.value = ""; // Limpiar selección
+            document.getElementById('triggerRegister').click();
+            authSelect.value = ""; // Restablece el select
           } else if (value === 'logout') {
             await supabaseClient.auth.signOut();
             window.location.reload();
           }
         });
       }
-
+      
       // ==========================================
       // AUTOCOMPLETAR DESDE 'userInfo' (Al cambiar correo)
       // ==========================================
