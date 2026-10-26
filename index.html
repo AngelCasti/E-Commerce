@@ -20,6 +20,47 @@
 ================================================================================
 -->
 <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const navBtn = document.getElementById('navAuthBtn');
+    const authModal = document.getElementById('authModal');
+    const closeBtn = document.getElementById('closeAuthModal');
+
+    // Validación para ver si los elementos existen en tu HTML
+    if (!navBtn) console.error("⚠️ No se encontró el botón #navAuthBtn");
+    if (!authModal) console.error("⚠️ No se encontró la ventana #authModal");
+
+    // 1. Abrir el modal al hacer clic en Sign in
+    if (navBtn && authModal) {
+      navBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log("🔓 Abriendo #authModal...");
+        // Forzamos el despliegue ignorando cualquier regla de la plantilla
+        authModal.style.setProperty('display', 'flex', 'important');
+        authModal.classList.add('active');
+      });
+    }
+
+    // 2. Cerrar el modal al hacer clic en la "X"
+    if (closeBtn && authModal) {
+      closeBtn.addEventListener('click', () => {
+        console.log("🔒 Cerrando #authModal...");
+        authModal.style.setProperty('display', 'none', 'important');
+        authModal.classList.remove('active');
+      });
+    }
+
+    // 3. Cerrar si hacen clic fuera de la tarjeta gris del modal
+    if (authModal) {
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+          authModal.style.setProperty('display', 'none', 'important');
+          authModal.classList.remove('active');
+        }
+      });
+    }
+  });
+</script>
+<script>
   let isLoggedIn = false;
 
   // Función principal del botón Sign In / Mi Cuenta
@@ -122,7 +163,7 @@
   </div>
   <div class="nav-cta" style="position: relative;">
     <!-- Botón Sign In -->
-    <a href="#" class="btn-ghost" id="navAuthBtn" onclick="handleAuthClick(event)">Sign in</a>
+    <a href="#" class="btn-ghost" id="navAuthBtn">Sign in</a>
   
     <!-- Menú desplegable cuando YA inició sesión -->
     <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 10px 0; min-width: 160px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
