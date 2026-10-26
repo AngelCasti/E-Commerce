@@ -27,8 +27,8 @@
   <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
-<!-- NAV MENU NAVEGADDOR-->
-<nav id="mainNav">
+<!-- NAV MENU NAVEGADOR -->
+<nav id="mainNav" style="position: relative; overflow: visible !important;">
   <a href="#" class="nav-logo">
     <div class="nav-logo-mark">
       <svg viewBox="0 0 16 16"><polyline points="2,12 6,7 10,9 14,4"/><circle cx="14" cy="4" r="1.5" fill="white" stroke="none"/></svg>
@@ -44,8 +44,10 @@
     <!-- Botón principal que abre/cierra el menú flotante -->
     <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
     
-    <!-- Menú flotante -->
-    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 180px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+    <!-- Menú flotante (Estructura estática para garantizar que siempre cargue) -->
+    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 120%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 8px 0; min-width: 160px; z-index: 99999; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+      <a href="#" onclick="openAuthModal('login'); return false;" style="display: block; padding: 10px 16px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
+      <a href="#" onclick="openAuthModal('register'); return false;" style="display: block; padding: 10px 16px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Registrarse</a>
     </div>
   
     <!-- Botones ocultos nativos que controlan los modales sin fallar -->
@@ -53,7 +55,6 @@
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
 </nav>
-
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <a href="#features">Features</a>
@@ -1292,25 +1293,20 @@
 </script>
 
 <script>
-  // 1. Controla la apertura y cierre del menú flotante de "Sign in"
   window.toggleAuthMenu = function(event) {
     if (event) event.preventDefault();
+    if (event) event.stopPropagation(); // Evita conflictos con el cierre global
+    
     const menu = document.getElementById('customAuthMenu');
     if (!menu) return;
     
     if (menu.style.display === 'block') {
       menu.style.display = 'none';
     } else {
-      // Inyectamos las opciones de inicio de sesión y registro
-      menu.innerHTML = `
-        <a href="#" onclick="openAuthModal('login'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-        <a href="#" onclick="openAuthModal('register'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Registrarse</a>
-      `;
       menu.style.display = 'block';
     }
   };
 
-  // 2. Dispara los botones ocultos de Bootstrap para abrir los modales reales
   window.openAuthModal = function(type) {
     const menu = document.getElementById('customAuthMenu');
     if (menu) menu.style.display = 'none'; // Cierra el menú flotante
@@ -1324,33 +1320,17 @@
     }
   };
 
-  // 3. Cierra el menú flotante si haces clic en cualquier otra parte de la página
+  // Cierra el menú flotante si haces clic fuera de él
   document.addEventListener('click', (e) => {
-    const navCta = document.querySelector('.nav-cta');
     const menu = document.getElementById('customAuthMenu');
-    if (navCta && menu && !navCta.contains(e.target)) {
-      menu.style.display = 'none';
+    const btn = document.getElementById('navAuthBtn');
+    if (menu && menu.style.display === 'block') {
+      if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+      }
     }
   });
-
-  // 4. Maneja el selector desplegable en la versión móvil
-  document.addEventListener('DOMContentLoaded', () => {
-    const authSelect = document.getElementById('authSelect');
-    if (authSelect) {
-      authSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        if (val === 'login') {
-          const loginBtn = document.getElementById('realLoginBtn');
-          if (loginBtn) loginBtn.click();
-        } else if (val === 'register') {
-          const regBtn = document.getElementById('realRegisterBtn');
-          if (regBtn) regBtn.click();
-        }
-        e.target.value = ""; // Resetea el select
-      });
-    }
-  });
-</script>  
+</script>
   
 </body>
 </html>
