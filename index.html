@@ -708,7 +708,7 @@
 
   let allExpanded = false;
 
-  window.toggleFaq = function(index) {
+window.toggleFaq = function(index) {
     const answer = document.getElementById(`faq-answer-${index}`);
     const arrow = document.getElementById(`faq-arrow-${index}`);
     if (!answer) return;
@@ -716,10 +716,13 @@
     if (answer.style.maxHeight && answer.style.maxHeight !== "0px") {
       answer.style.maxHeight = "0px";
       answer.style.paddingTop = "0px";
+      answer.style.paddingBottom = "0px";
       if (arrow) arrow.style.transform = "rotate(0deg)";
     } else {
-      answer.style.maxHeight = answer.scrollHeight + "px";
+      // Añadimos un pequeño margen extra (+30px) para asegurar que todo el texto y el padding se muestren sin cortes
       answer.style.paddingTop = "12px";
+      answer.style.paddingBottom = "12px";
+      answer.style.maxHeight = (answer.scrollHeight + 30) + "px";
       if (arrow) arrow.style.transform = "rotate(180deg)";
     }
   };
@@ -735,12 +738,14 @@
       if (!answer) continue;
 
       if (allExpanded) {
-        answer.style.maxHeight = answer.scrollHeight + "px";
         answer.style.paddingTop = "12px";
+        answer.style.paddingBottom = "12px";
+        answer.style.maxHeight = (answer.scrollHeight + 30) + "px";
         if (arrow) arrow.style.transform = "rotate(180deg)";
       } else {
         answer.style.maxHeight = "0px";
         answer.style.paddingTop = "0px";
+        answer.style.paddingBottom = "0px";
         if (arrow) arrow.style.transform = "rotate(0deg)";
       }
     }
