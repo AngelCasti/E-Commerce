@@ -1214,24 +1214,6 @@
     renderTestimonials();
   });
 </script>
-
-<!-- FAQ -->
-<script>
-  function toggleFaqStatic(element) {
-    const answer = element.nextElementSibling;
-    const indicator = element.querySelector('span:last-child');
-    
-    if (answer.style.maxHeight && answer.style.maxHeight !== "0px") {
-      answer.style.maxHeight = "0px";
-      answer.style.paddingTop = "0px";
-      indicator.textContent = '+';
-    } else {
-      answer.style.maxHeight = answer.scrollHeight + "px";
-      answer.style.paddingTop = "12px";
-      indicator.textContent = '-';
-    }
-  }
-</script>
   
 </body>
 </html>
