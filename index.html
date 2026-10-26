@@ -1277,7 +1277,7 @@
 </script>
 
 <!-- Script para el formulario -->
-  <script>
+<script>
   document.addEventListener('DOMContentLoaded', () => {
     const appointmentForm = document.getElementById('scheduleAppointmentForm');
 
@@ -1306,9 +1306,8 @@
         }
 
         try {
-          // Asegúrate de que tu cliente de Supabase esté inicializado (window.supabaseClient o similar)
-          // Aquí asumimos que usas el cliente estándar o puedes integrarlo en tu script unificado de Supabase.
-          const { error } = await supabaseClient.from('appointments').insert([{
+          // Usamos window.supabaseClient para asegurar que encuentre la conexión global
+          const { error } = await window.supabaseClient.from('appointments').insert([{
             client_name: clientName,
             client_email: clientEmail,
             client_company: clientCompany,
