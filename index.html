@@ -27,8 +27,20 @@
   <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
-  <!-- NAVEGADOR MENU -->
-    <div class="nav-cta" style="position: relative;">
+<!-- NAV MENU NAVEGADOR -->
+<nav id="mainNav">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 16 16"><polyline points="2,12 6,7 10,9 14,4"/><circle cx="14" cy="4" r="1.5" fill="white" stroke="none"/></svg>
+    </div>
+    FlowSync
+  </a>
+  <div class="nav-links">
+    <a href="#features">Solutions</a>
+    <a href="#pricing">Services</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="nav-cta" style="position: relative;">
     <!-- Botón principal: Abre el login directo o el menú de cuenta según el estado -->
     <a href="#" class="btn-ghost" id="navAuthBtn" onclick="handleAuthClick(event)">Sign in</a>
     
@@ -42,6 +54,7 @@
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
+</nav>
   
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
