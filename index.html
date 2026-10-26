@@ -1127,18 +1127,16 @@
   });
 </script>
 <script>
-  const faqData = [
-    { q: "How secure are the automated transactions?", a: "We use bank-grade encryption, multi-factor authentication, and comply with strict international regulatory standards to ensure maximum security for your funds and data." },
-    { q: "How long does the setup process take?", a: "Most businesses can integrate our API and configure their basic settings within a few hours. Comprehensive support is available for complex industrial or corporate implementations." },
-    { q: "What kind of support is available?", a: "We offer 24/7 technical support via chat, email, and scheduled technical appointments with our engineering specialists." },
-    { q: "Can I scale my plan later as my business grows?", a: "Yes, our platform is fully modular and scalable, allowing you to upgrade your tier, add users, or expand features seamlessly at any time." }
-  ];
-
-  let allExpanded = false;
-
-  function renderFaqs() {
+  function initFaq() {
     const list = document.getElementById('faqList');
-    if (!list) return;
+    if (!list) return; // Si de plano no está en el DOM, se detiene sin romper nada
+
+    const faqData = [
+      { q: "How secure are the automated transactions?", a: "We use bank-grade encryption, multi-factor authentication, and comply with strict international regulatory standards to ensure maximum security for your funds and data." },
+      { q: "How long does the setup process take?", a: "Most businesses can integrate our API and configure their basic settings within a few hours. Comprehensive support is available for complex industrial or corporate implementations." },
+      { q: "What kind of support is available?", a: "We offer 24/7 technical support via chat, email, and scheduled technical appointments with our engineering specialists." },
+      { q: "Can I scale my plan later as my business grows?", a: "Yes, our platform is fully modular and scalable, allowing you to upgrade your tier, add users, or expand features seamlessly at any time." }
+    ];
 
     let htmlContent = '';
     faqData.forEach((item, index) => {
@@ -1156,6 +1154,15 @@
     });
     list.innerHTML = htmlContent;
   }
+
+  // Comprobación inteligente para asegurar que corra sí o sí
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFaq);
+  } else {
+    initFaq();
+  }
+
+  let allExpanded = false;
 
   window.toggleFaq = function(index) {
     const answer = document.getElementById(`faq-answer-${index}`);
@@ -1178,10 +1185,10 @@
     const label = document.getElementById('faqToggleLabel');
     const icon = document.getElementById('faqToggleIcon');
     
-    faqData.forEach((_, index) => {
+    for (let index = 0; index < 4; index++) {
       const answer = document.getElementById(`faq-answer-${index}`);
       const arrow = document.getElementById(`faq-arrow-${index}`);
-      if (!answer) return;
+      if (!answer) continue;
 
       if (allExpanded) {
         answer.style.maxHeight = answer.scrollHeight + "px";
@@ -1192,7 +1199,7 @@
         answer.style.paddingTop = "0px";
         if (arrow) arrow.style.transform = "rotate(0deg)";
       }
-    });
+    }
 
     if (label) label.textContent = allExpanded ? 'Collapse all' : 'Expand all';
     if (icon) {
@@ -1201,10 +1208,6 @@
         : '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
     }
   };
-
-  document.addEventListener('DOMContentLoaded', () => {
-    renderFaqs();
-  });
 </script>
   
 </body>
