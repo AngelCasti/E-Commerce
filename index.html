@@ -41,12 +41,16 @@
     <a href="#faq">FAQ</a>
   </div>
   <div class="nav-cta" style="position: relative;">
+    <!-- Botón principal que abre/cierra el menú flotante -->
     <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
     
-    <!-- Menú flotante que se abrirá con la función -->
+    <!-- Menú flotante -->
     <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 180px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
-      <!-- El contenido se cargará dinámicamente con JavaScript -->
     </div>
+  
+    <!-- Botones ocultos nativos que controlan los modales sin fallar -->
+    <button type="button" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
+    <button type="button" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
 </nav>
 
@@ -750,13 +754,23 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script con Disparadores Nativos de Bootstrap -->
+<!-- 2. Script Maestro -->
 <script>
   // Función global para mostrar/ocultar el menú flotante
   window.toggleAuthMenu = function(e) {
     e.preventDefault();
     const menu = document.getElementById('customAuthMenu');
     menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+  };
+
+  // Función para activar los botones ocultos y cerrar el menú
+  window.triggerModal = function(btnId, event) {
+    if (event) event.preventDefault();
+    const menu = document.getElementById('customAuthMenu');
+    if (menu) menu.style.display = 'none';
+    
+    const btn = document.getElementById(btnId);
+    if (btn) btn.click();
   };
 
   // Cerrar el menú si se hace clic fuera de él
@@ -838,7 +852,7 @@
 
         } else {
           // ==========================================
-          // ESTADO: USUARIO NO LOGUEADO (Con atributos nativos de Bootstrap)
+          // ESTADO: USUARIO NO LOGUEADO
           // ==========================================
           if (navAuthBtn) {
             navAuthBtn.innerHTML = "Sign in";
@@ -846,8 +860,8 @@
           
           if (authMenu) {
             authMenu.innerHTML = `
-              <a href="#loginModal" data-bs-toggle="modal" data-bs-target="#loginModal" onclick="document.getElementById('customAuthMenu').style.display='none'" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-              <a href="#registerModal" data-bs-toggle="modal" data-bs-target="#registerModal" onclick="document.getElementById('customAuthMenu').style.display='none'" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
+              <a href="#" onclick="triggerModal('realLoginBtn', event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
+              <a href="#" onclick="triggerModal('realRegisterBtn', event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
             `;
           }
         }
