@@ -762,15 +762,22 @@ nav.scrolled{background:rgba(15,19,25,.95);backdrop-filter:blur(20px);border-col
   color:var(--sky);
   margin-bottom:16px;
 }
-.section-title{
-  font-family:'Outfit',sans-serif;
-  font-size:clamp(32px,4vw,48px);
-  font-weight:800;
-  letter-spacing:-.03em;
-  line-height:1.1;
-  margin-bottom:16px;
+.section-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+  color: var(--text); /* <--- ¡Esta línea faltaba para que tomen el color correcto! */
 }
-.section-sub{font-size:16px;color:var(--text2);font-weight:300;line-height:1.7}
+
+.section-sub {
+  font-size: 16px;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.7;
+}
 
 .sticky-layout{
   display:grid;
