@@ -834,39 +834,14 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Maestro Unificado (Supabase Global, Sesión, Precios y Citas) -->
+<!-- 2. Script Maestro Unificado y Corregido -->
 <script>
-  // Declarar variables globales únicas
-  let isAnnual = false;
+  // Variables globales del sistema
   window.isUserLoggedIn = false;
 
-  // Función global de Precios (evita duplicados)
-  function togglePricing() {
-    isAnnual = !isAnnual;
-    const toggleSwitch = document.getElementById('pricingToggle');
-    
-    if (toggleSwitch) {
-      toggleSwitch.classList.toggle('active', isAnnual);
-    }
-
-    document.querySelectorAll('.price-num').forEach(num => {
-      num.textContent = isAnnual ? num.getAttribute('data-annual') : num.getAttribute('data-monthly');
-    });
-
-    document.querySelectorAll('.period-label').forEach(label => {
-      label.textContent = isAnnual ? 'annually' : 'monthly';
-    });
-
-    document.querySelectorAll('.price-alt-monthly').forEach(el => {
-      el.style.display = isAnnual ? 'inline' : 'none';
-    });
-    
-    document.querySelectorAll('.price-alt-annual').forEach(el => {
-      el.style.display = isAnnual ? 'none' : 'inline';
-    });
-  }
-
-  // Funciones globales para el Modal
+  // ==========================================
+  // FUNCIONES GLOBALES PARA EL MODAL Y UI
+  // ==========================================
   window.openAuthModal = function(tabName) {
     const menu = document.getElementById('customAuthMenu');
     if (menu) menu.style.display = 'none';
@@ -879,8 +854,8 @@
       authModal.style.setProperty('pointer-events', 'auto', 'important');
       authModal.classList.add('active');
       
-      if (tabName && typeof switchAuthTab === 'function') {
-        switchAuthTab(tabName);
+      if (tabName && typeof window.switchAuthTab === 'function') {
+        window.switchAuthTab(tabName);
       }
     }
   };
@@ -896,11 +871,51 @@
     }
   };
 
+  // Función para alternar entre Login y Register dentro del modal
+  window.switchAuthTab = function(tabName) {
+    const loginFormContainer = document.getElementById('loginFormContainer');
+    const registerFormContainer = document.getElementById('registerFormContainer');
+    
+    const tabLoginBtn = document.getElementById('tabLoginBtn');
+    const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+    if (tabName === 'login') {
+      if (loginFormContainer) loginFormContainer.style.display = 'block';
+      if (registerFormContainer) registerFormContainer.style.display = 'none';
+      if (tabLoginBtn) tabLoginBtn.classList.add('active');
+      if (tabRegisterBtn) tabRegisterBtn.classList.remove('active');
+    } else if (tabName === 'register') {
+      if (loginFormContainer) loginFormContainer.style.display = 'none';
+      if (registerFormContainer) registerFormContainer.style.display = 'block';
+      if (tabLoginBtn) tabLoginBtn.classList.remove('active');
+      if (tabRegisterBtn) tabRegisterBtn.classList.add('active');
+    }
+  };
+
+  // Función para ver / ocultar contraseña
+  window.togglePassword = function(inputId, buttonIconId) {
+    const passwordInput = document.getElementById(inputId);
+    const iconBtn = document.getElementById(buttonIconId);
+    
+    if (passwordInput) {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        if (iconBtn) iconBtn.textContent = '🔒';
+      } else {
+        passwordInput.type = 'password';
+        if (iconBtn) iconBtn.textContent = '👁️';
+      }
+    }
+  };
+
+  // ==========================================
+  // INICIALIZACIÓN PRINCIPAL AL CARGAR LA PÁGINA
+  // ==========================================
   document.addEventListener('DOMContentLoaded', async () => {
     const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
     
-    // Inicializar cliente global para que la plantilla y los formularios lo reconozcan
+    // Inicializar cliente global de Supabase
     try {
       window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (err) {
@@ -921,7 +936,7 @@
       });
     }
     
-    // Verificar sesión activa
+    // Verificar sesión activa del usuario
     try {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       
@@ -1040,7 +1055,7 @@
             appointment_date: appointmentDate,
             appointment_time: appointmentTime,
             modality: modality,
-            appointment_notes: appointmentNotes // <--- Corregido al nombre exacto de tu tabla
+            appointment_notes: appointmentNotes
           }]);
           
           if (error) throw error;
@@ -1110,48 +1125,8 @@
     }
 
   });
-
-// ==========================================
-  // CAMBIAR DE PESTAÑA (Login / Register)
-  // ==========================================
-  window.switchAuthTab = function(tabName) {
-    const loginFormContainer = document.getElementById('loginFormContainer');
-    const registerFormContainer = document.getElementById('registerFormContainer');
-    
-    const tabLoginBtn = document.getElementById('tabLoginBtn');
-    const tabRegisterBtn = document.getElementById('tabRegisterBtn');
-
-    if (tabName === 'login') {
-      if (loginFormContainer) loginFormContainer.style.display = 'block';
-      if (registerFormContainer) registerFormContainer.style.display = 'none';
-      if (tabLoginBtn) tabLoginBtn.classList.add('active');
-      if (tabRegisterBtn) tabRegisterBtn.classList.remove('active');
-    } else if (tabName === 'register') {
-      if (loginFormContainer) loginFormContainer.style.display = 'none';
-      if (registerFormContainer) registerFormContainer.style.display = 'block';
-      if (tabLoginBtn) tabLoginBtn.classList.remove('active');
-      if (tabRegisterBtn) tabRegisterBtn.classList.add('active');
-    }
-  };
-
-  // ==========================================
-  // BOTÓN VER / OCULTAR CONTRASEÑA
-  // ==========================================
-  window.togglePassword = function(inputId, buttonIconId) {
-    const passwordInput = document.getElementById(inputId);
-    const iconBtn = document.getElementById(buttonIconId);
-    
-    if (passwordInput) {
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        if (iconBtn) iconBtn.textContent = '🔒'; // Cambia el icono si lo deseas
-      } else {
-        passwordInput.type = 'password';
-        if (iconBtn) iconBtn.textContent = '👁️';
-      }
-    }
-  };  
 </script>
+
 
 <!-- Porcentajes mamalones -->
 <script>
