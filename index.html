@@ -832,12 +832,39 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Maestro Unificado (Supabase + Autenticación + Modales) -->
+<!-- 2. Script Maestro Unificado (Supabase Global, Sesión, Precios y Citas) -->
 <script>
-  // Variable global para saber si hay sesión activa
+  // Declarar variables globales únicas
+  let isAnnual = false;
   window.isUserLoggedIn = false;
 
-  // Función global para abrir el modal de autenticación limpiamente
+  // Función global de Precios (evita duplicados)
+  function togglePricing() {
+    isAnnual = !isAnnual;
+    const toggleSwitch = document.getElementById('pricingToggle');
+    
+    if (toggleSwitch) {
+      toggleSwitch.classList.toggle('active', isAnnual);
+    }
+
+    document.querySelectorAll('.price-num').forEach(num => {
+      num.textContent = isAnnual ? num.getAttribute('data-annual') : num.getAttribute('data-monthly');
+    });
+
+    document.querySelectorAll('.period-label').forEach(label => {
+      label.textContent = isAnnual ? 'annually' : 'monthly';
+    });
+
+    document.querySelectorAll('.price-alt-monthly').forEach(el => {
+      el.style.display = isAnnual ? 'inline' : 'none';
+    });
+    
+    document.querySelectorAll('.price-alt-annual').forEach(el => {
+      el.style.display = isAnnual ? 'none' : 'inline';
+    });
+  }
+
+  // Funciones globales para el Modal
   window.openAuthModal = function(tabName) {
     const menu = document.getElementById('customAuthMenu');
     if (menu) menu.style.display = 'none';
@@ -850,14 +877,12 @@
       authModal.style.setProperty('pointer-events', 'auto', 'important');
       authModal.classList.add('active');
       
-      // Cambiar a la pestaña de login o register si existe la función
       if (tabName && typeof switchAuthTab === 'function') {
         switchAuthTab(tabName);
       }
     }
   };
 
-  // Función para cerrar el modal de forma segura
   window.closeAuthModal = function() {
     const authModal = document.getElementById('authModal');
     if (authModal) {
@@ -873,9 +898,9 @@
     const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
     
-    let supabaseClient;
+    // Inicializar cliente global para que la plantilla y los formularios lo reconozcan
     try {
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (err) {
       console.error("Error al iniciar Supabase:", err);
       return;
@@ -885,35 +910,26 @@
     const authMenu = document.getElementById('customAuthMenu');
     const closeBtn = document.getElementById('closeAuthModal');
     
-    // Configurar botón de cerrar modal ("X")
-    if (closeBtn) {
-      closeBtn.addEventListener('click', window.closeAuthModal);
-    }
+    if (closeBtn) closeBtn.addEventListener('click', window.closeAuthModal);
 
-    // Cerrar modal al hacer clic fuera de la tarjeta
     const authModal = document.getElementById('authModal');
     if (authModal) {
       authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-          window.closeAuthModal();
-        }
+        if (e.target === authModal) window.closeAuthModal();
       });
     }
     
+    // Verificar sesión activa
     try {
-      // Verificar sesión activa en Supabase
-      const { data: { session } } = await supabaseClient.auth.getSession();
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
       
       if (session) {
-        // ==========================================
-        // ESTADO: USUARIO LOGUEADO
-        // ==========================================
         window.isUserLoggedIn = true;
         const user = session.user;
         
         let fullName = user.user_metadata?.full_name || '';
         if (!fullName) {
-          const { data: profile } = await supabaseClient
+          const { data: profile } = await window.supabaseClient
             .from('userInfo')
             .select('*')
             .or(`email.eq.${user.email},client_email.eq.${user.email}`)
@@ -923,64 +939,47 @@
         
         const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
-        // Estilizar el botón superior como perfil de usuario
         if (navAuthBtn) {
           navAuthBtn.innerHTML = `👤 <span style="margin-left: 6px; font-weight: 600;">${firstName} ▾</span>`;
           navAuthBtn.className = ""; 
           navAuthBtn.style.cssText = `
-            display: inline-flex;
-            align-items: center;
+            display: inline-flex; align-items: center;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff !important;
-            padding: 6px 18px;
-            border-radius: 50px;
-            text-decoration: none !important;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(5px);
-            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff !important;
+            padding: 6px 18px; border-radius: 50px; text-decoration: none !important;
+            font-size: 14px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); backdrop-filter: blur(5px); cursor: pointer;
           `;
         }
 
-        // Llenar el menú flotante con opciones de cuenta y cierre de sesión
         if (authMenu) {
           authMenu.innerHTML = `
             <div style="padding: 10px 15px 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px;">
               <span style="font-size: 11px; color: #aaa; display: block;">Conectado como:</span>
               <strong style="font-size: 12px; color: #fff; word-break: break-all;">${user.email}</strong>
             </div>
-            <a href="#" id="logoutBtn" style="display: block; padding: 8px 15px; color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cerrar Sesión</a>
+            <a href="#" onclick="alert('Ir al perfil'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px;">Mi perfil</a>
+            <a href="#" id="logoutBtn" style="display: block; padding: 8px 15px; color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 14px;">Cerrar Sesión</a>
           `;
         }
 
-        // Evento de Cerrar Sesión
         document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
           e.preventDefault();
-          await supabaseClient.auth.signOut();
+          await window.supabaseClient.auth.signOut();
           window.location.reload();
         });
 
-        // Auto-llenar campos del formulario de citas[cite: 1]
         const clientEmailInput = document.getElementById('clientEmail');
         const clientNameInput = document.getElementById('clientName');
         if (clientEmailInput && !clientEmailInput.value) clientEmailInput.value = user.email;
         if (clientNameInput && !clientNameInput.value && fullName) clientNameInput.value = fullName;
 
       } else {
-        // ==========================================
-        // ESTADO: USUARIO NO LOGUEADO
-        // ==========================================
         window.isUserLoggedIn = false;
-        
-        if (navAuthBtn) {
-          navAuthBtn.innerHTML = "Sign in";
-        }
-        
+        if (navAuthBtn) navAuthBtn.innerHTML = "Sign in";
         if (authMenu) {
           authMenu.innerHTML = `
-            <a href="#" onclick="window.openAuthModal('login'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-            <a href="#" onclick="window.openAuthModal('register'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
+            <a href="#" onclick="window.openAuthModal('login'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px;">Iniciar Sesión</a>
+            <a href="#" onclick="window.openAuthModal('register'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px;">Registrarse</a>
           `;
         }
       }
@@ -988,25 +987,18 @@
       console.error("Error al gestionar la sesión:", e);
     }
 
-    // Manejador inteligente del botón principal de navegación
     if (navAuthBtn) {
       navAuthBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-
         if (!window.isUserLoggedIn) {
-          // Si no ha iniciado sesión, abre el modal de login directamente
           window.openAuthModal('login');
         } else {
-          // Si ya inició sesión, despliega el menú de cuenta
-          if (authMenu) {
-            authMenu.style.display = (authMenu.style.display === 'block') ? 'none' : 'block';
-          }
+          if (authMenu) authMenu.style.display = (authMenu.style.display === 'block') ? 'none' : 'block';
         }
       });
     }
 
-    // Cerrar menú flotante al hacer clic fuera[cite: 1]
     document.addEventListener('click', (e) => {
       const navCta = document.querySelector('.nav-cta');
       if (navCta && authMenu && !navCta.contains(e.target)) {
@@ -1015,7 +1007,51 @@
     });
 
     // ==========================================
-    // LOGIN[cite: 1]
+    // FORMULARIO DE CITAS (Appointments)
+    // ==========================================
+    const appointmentForm = document.getElementById('scheduleAppointmentForm');
+    if (appointmentForm) {
+      appointmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const clientName = document.getElementById('clientName')?.value.trim() || '';
+        const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
+        const clientCompany = document.getElementById('clientCompany')?.value.trim() || '';
+        const appointmentType = document.getElementById('appointmentType')?.value || '';
+        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
+        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
+        
+        const modalityInput = document.querySelector('input[name="modality"]:checked');
+        const modality = modalityInput ? modalityInput.value : 'virtual';
+        const appointmentNotes = document.getElementById('appointmentNotes')?.value.trim() || '';
+
+        if (!clientName || !clientEmail || !appointmentType || !appointmentDate || !appointmentTime) {
+          alert('Por favor completa todos los campos obligatorios marcados con *.');
+          return;
+        }
+
+        try {
+          const { error } = await window.supabaseClient.from('appointments').insert([{
+            client_name: clientName,
+            client_email: clientEmail,
+            client_company: clientCompany,
+            appointment_type: appointmentType,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            modality: modality,
+            notes: appointmentNotes
+          }]);
+          
+          if (error) throw error;
+          alert('¡Cita técnica programada con éxito! Nos pondremos en contacto contigo.');
+          appointmentForm.reset();
+        } catch (err) {
+          alert('Error al guardar la cita: ' + err.message);
+        }
+      });
+    }
+
+    // ==========================================
+    // LOGIN
     // ==========================================
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -1030,7 +1066,7 @@
         if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
 
         try {
-          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           window.location.reload();
         } catch (err) {
@@ -1039,53 +1075,37 @@
       });
     }
 
-      // ==========================================
-      // REGISTER (Crear cuenta)
-      // ==========================================
-      const registerForm = document.getElementById('registerForm');
-      if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const nameInput = registerForm.querySelector('#regName');
-          const emailInput = registerForm.querySelector('#regEmail');
-          const passwordInput = registerForm.querySelector('#regPassword');
-          
-          const name = nameInput ? nameInput.value.trim() : '';
-          const email = emailInput ? emailInput.value.trim() : '';
-          const password = passwordInput ? passwordInput.value : '';
-          
-          if (!email || !password) return alert('Por favor llena todos los campos.');
+    // ==========================================
+    // REGISTER
+    // ==========================================
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameInput = registerForm.querySelector('#regName');
+        const emailInput = registerForm.querySelector('#regEmail');
+        const passwordInput = registerForm.querySelector('#regPassword');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        
+        if (!email || !password) return alert('Por favor llena todos los campos.');
 
-          try {
-            // 1. Crear el usuario en el sistema de autenticación de Supabase
-            const { data, error } = await supabaseClient.auth.signUp({ 
-              email, 
-              password,
-              options: { data: { full_name: name } }
-            });
-            if (error) throw error;
-
-            // 2. Insertar también una copia en tu tabla 'userInfo' para que aparezca ahí
-            const { error: insertError } = await supabaseClient.from('userInfo').insert([
-              { 
-                email: email, 
-                name: name,
-                client_email: email,
-                client_name: name 
-              }
-            ]);
-            
-            if (insertError) {
-              console.warn("Usuario creado en Auth, pero hubo un detalle al guardarlo en userInfo:", insertError.message);
-            }
-
-            alert('¡Cuenta creada con éxito!');
-            window.location.reload();
-          } catch (err) {
-            alert('Error al registrarse: ' + err.message);
-          }
-        });
-      }
+        try {
+          const { error } = await window.supabaseClient.auth.signUp({ 
+            email, 
+            password,
+            options: { data: { full_name: name } }
+          });
+          if (error) throw error;
+          alert('¡Cuenta creada con éxito!');
+          window.location.reload();
+        } catch (err) {
+          alert('Error al registrarse: ' + err.message);
+        }
+      });
+    }
 
   });
 </script>
