@@ -40,16 +40,11 @@
     <a href="#pricing">Services</a>
     <a href="#faq">FAQ</a>
   </div>
-  <div class="nav-cta" style="position: relative;">
-    <!-- Botón principal que abre/cierra el menú flotante -->
-    <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
-    
-  <div id="customAuthMenu" style="display: none !important; position: absolute !important; right: 0 !important; top: 120% !important; background: #1e1e2f !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 12px !important; padding: 8px 0 !important; min-width: 160px !important; z-index: 999999 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.8) !important;">
-    <a href="#" onclick="openAuthModal('login'); return false;" style="display: block !important; padding: 10px 16px !important; color: #fff !important; text-decoration: none !important; font-size: 14px !important;">Iniciar Sesión</a>
-    <a href="#" onclick="openAuthModal('register'); return false;" style="display: block !important; padding: 10px 16px !important; color: #fff !important; text-decoration: none !important; font-size: 14px !important;">Registrarse</a>
-  </div>
+  <div class="nav-cta">
+    <!-- Clic directo para abrir Iniciar Sesión sin menús ni intermediarios -->
+    <a href="#" class="btn-ghost" onclick="openDirectLogin(event)">Sign in</a>
   
-    <!-- Botones ocultos nativos que controlan los modales sin fallar -->
+    <!-- Botones nativos ocultos para Bootstrap -->
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
@@ -1293,51 +1288,11 @@
 </script>
 
 <script>
-  window.toggleAuthMenu = function(event) {
-    if (event) event.preventDefault();
-    if (event) event.stopPropagation();
-    
-    const menu = document.getElementById('customAuthMenu');
-    if (!menu) {
-      console.warn("⚠️ No se encontró el elemento #customAuthMenu en el DOM.");
-      return;
-    }
-    
-    // Obtenemos el estado real calculado por el navegador
-    const isHidden = window.getComputedStyle(menu).display === 'none';
-    
-    if (isHidden) {
-      menu.style.setProperty('display', 'block', 'important');
-      console.log("🔓 Menú abierto forzosamente.");
-    } else {
-      menu.style.setProperty('display', 'none', 'important');
-      console.log("🔒 Menú cerrado.");
-    }
-  };
-
-  window.openAuthModal = function(type) {
-    const menu = document.getElementById('customAuthMenu');
-    if (menu) menu.style.setProperty('display', 'none', 'important');
-    
-    if (type === 'login') {
-      const loginBtn = document.getElementById('realLoginBtn');
-      if (loginBtn) loginBtn.click();
-    } else if (type === 'register') {
-      const regBtn = document.getElementById('realRegisterBtn');
-      if (regBtn) regBtn.click();
-    }
-  };
-
-  // Cierra el menú si haces clic fuera
-  document.addEventListener('click', (e) => {
-    const menu = document.getElementById('customAuthMenu');
-    const btn = document.getElementById('navAuthBtn');
-    if (menu && btn) {
-      if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.style.setProperty('display', 'none', 'important');
-      }
-    }
-  });
+  function openDirectLogin(e) {
+    if (e) e.preventDefault();
+    const btn = document.getElementById('realLoginBtn');
+    if (btn) btn.click();
+  }
 </script>
   
 </body>
