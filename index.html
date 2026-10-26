@@ -1260,6 +1260,63 @@
   }
 </script>
 
+<!-- Script para el formulario -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const appointmentForm = document.getElementById('scheduleAppointmentForm');
+
+    if (appointmentForm) {
+      appointmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Evita que la página se recargue
+
+        // 1. Capturar los valores de todos los campos del formulario
+        const clientName = document.getElementById('clientName')?.value.trim() || '';
+        const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
+        const clientCompany = document.getElementById('clientCompany')?.value.trim() || '';
+        const appointmentType = document.getElementById('appointmentType')?.value || '';
+        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
+        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
+        
+        // Capturar el radio button seleccionado para la modalidad (Virtual u On-site)
+        const modalityInput = document.querySelector('input[name="modality"]:checked');
+        const modality = modalityInput ? modalityInput.value : 'virtual';
+        
+        const appointmentNotes = document.getElementById('appointmentNotes')?.value.trim() || '';
+
+        // 2. Validar campos obligatorios básicos
+        if (!clientName || !clientEmail || !appointmentType || !appointmentDate || !appointmentTime) {
+          alert('Por favor completa todos los campos obligatorios marcados con *.');
+          return;
+        }
+
+        try {
+          // Asegúrate de que tu cliente de Supabase esté inicializado (window.supabaseClient o similar)
+          // Aquí asumimos que usas el cliente estándar o puedes integrarlo en tu script unificado de Supabase.
+          const { error } = await supabaseClient.from('appointments').insert([{
+            client_name: clientName,
+            client_email: clientEmail,
+            client_company: clientCompany,
+            appointment_type: appointmentType,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            modality: modality,
+            notes: appointmentNotes
+          }]);
+
+          if (error) throw error;
+
+          alert('¡Cita técnica programada con éxito! Nos pondremos en contacto contigo.');
+          appointmentForm.reset(); // Limpia el formulario tras el éxito
+
+        } catch (err) {
+          console.error('Error al guardar la cita:', err);
+          alert('Hubo un error al agendar la cita: ' + err.message);
+        }
+      });
+    }
+  });
+</script>
+  
   
 </body>
 </html>
