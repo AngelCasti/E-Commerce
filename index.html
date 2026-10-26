@@ -339,7 +339,7 @@
 
 <!-- FEATURES — STICKY STACK -->
 <section class="features-section" id="features">
-  <div class="features-header silk-reveal">
+  <div class="features-header">
     <div class="section-tag">Smarter processes.</div>
     <h2 class="section-title">Better business.</h2>
     <p class="section-sub">From repetitive tasks to digital workflows, we help your business save time, reduce errors, and operate more efficiently.</p>
@@ -1211,6 +1211,35 @@
 </script>
 <!-- 3. Script de la plantilla Novapay al final de todo -->
 <script src="templatemo-623-novapay-script.js"></script>
+
+<!-- business sepa la bola -->  
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const cards = document.querySelectorAll('.sticky-card');
+    const views = document.querySelectorAll('.panel-view');
+    const panelLabel = document.getElementById('panelLabel');
+
+    // Títulos correspondientes a cada panel
+    const labels = ["Business Process Automation", "Automated Reports", "Digital Process Solutions"];
+
+    cards.forEach((card, index) => {
+      card.addEventListener('click', () => {
+        // 1. Quitar clase active de todas las tarjetas y paneles
+        cards.forEach(c => c.classList.remove('active'));
+        views.forEach(v => v.classList.remove('active'));
+
+        // 2. Activar la tarjeta seleccionada y su respectivo panel
+        card.classList.add('active');
+        const targetView = document.getElementById(`panel-${index}`);
+        if (targetView) targetView.classList.add('active');
+
+        // 3. Cambiar el texto del título superior del panel
+        if (panelLabel) panelLabel.textContent = labels[index] || "Process View";
+      });
+    });
+  });
+</script>
+
   
 </body>
 </html>
