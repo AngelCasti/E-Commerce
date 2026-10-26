@@ -745,7 +745,7 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Integrado: UI de Usuario, Auto-llenado y Supabase -->
+<!-- 2. Script Corregido para UI y Auto-llenado -->
 <script>
   (function() {
     document.addEventListener('DOMContentLoaded', async () => {
@@ -761,7 +761,7 @@
       }
 
       // ==========================================
-      // 1. VERIFICAR SESIÓN, CAMBIAR BOTÓN Y AUTO-LLENAR DATOS
+      // 1. VERIFICAR SESIÓN Y ACTUALIZAR NAVBAR
       // ==========================================
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -769,43 +769,47 @@
         if (session) {
           const user = session.user;
           
-          // Intentar obtener el nombre completo desde los metadatos o la tabla userInfo
-          let fullName = user.user_metadata?.full_name || '';
+          // Buscar el nombre completo en metadatos o en la tabla userInfo (probando varias columnas)
+          let fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+          
           if (!fullName) {
             const { data: profile } = await supabaseClient
               .from('userInfo')
               .select('*')
-              .eq('email', user.email)
+              .or(`email.eq.${user.email},client_email.eq.${user.email}`)
               .maybeSingle();
-            if (profile && profile.name) {
-              fullName = profile.name;
+              
+            if (profile) {
+              fullName = profile.name || profile.client_name || profile.full_name || '';
             }
           }
           
-          // Extraer solo el primer nombre (si existe), o usar la parte antes del @ del correo
+          // Extraer el primer nombre o usar la parte antes del @
           const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
-          // Requisito 1: Reemplazar el botón "Sign In" en la barra de navegación por el menú con el primer nombre
-          const navLinks = document.querySelectorAll('a, button');
-          navLinks.forEach(el => {
+          // Reemplazar el botón de Sign In de forma limpia en el menú de navegación
+          const navElements = document.querySelectorAll('.navbar-nav .nav-link, .navbar-nav a, a');
+          navElements.forEach(el => {
             const text = el.textContent.trim().toLowerCase();
-            if (text === 'sign in' || text === 'login') {
-              el.outerHTML = `
-                <div class="dropdown d-inline-block ms-3">
-                  <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3 py-1" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 14px;">
-                    👤 ${firstName}
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+            if (text === 'sign in' || text === 'login' || text.includes('sign in')) {
+              // Reemplazamos el elemento contenedor padre o el enlace con una estructura Bootstrap válida
+              const container = el.closest('li') || el;
+              container.outerHTML = `
+                <li class="nav-item dropdown ms-lg-3">
+                  <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="me-1">👤</span> ${firstName}
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                     <li><span class="dropdown-item-text text-muted small"><strong>${user.email}</strong></span></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger fw-bold" href="#" id="logoutBtn">Cerrar Sesión</a></li>
                   </ul>
-                </div>
+                </li>
               `;
             }
           });
 
-          // Activar evento del botón de Cerrar Sesión
+          // Evento del botón Cerrar Sesión
           setTimeout(() => {
             document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
               e.preventDefault();
@@ -813,16 +817,18 @@
               alert('Has cerrado sesión correctamente.');
               window.location.reload();
             });
-          }, 100);
+          }, 200);
 
-          // Requisito 2: Llenar en automático los campos del formulario de citas/perfil
+          // ==========================================
+          // 2. AUTO-LLENAR FORMULARIO DE CITAS
+          // ==========================================
           const clientEmailInput = document.getElementById('clientEmail');
           const clientNameInput = document.getElementById('clientName');
           
-          if (clientEmailInput && !clientEmailInput.value) {
+          if (clientEmailInput) {
             clientEmailInput.value = user.email;
           }
-          if (clientNameInput && !clientNameInput.value && fullName) {
+          if (clientNameInput && fullName) {
             clientNameInput.value = fullName;
           }
         }
@@ -831,7 +837,7 @@
       }
 
       // ==========================================
-      // 2. AUTOCOMPLETAR DESDE 'userInfo' (Campo Email en Citas)
+      // 3. AUTOCOMPLETAR DESDE 'userInfo' (Al cambiar correo)
       // ==========================================
       const clientEmailInput = document.getElementById('clientEmail');
       if (clientEmailInput) {
@@ -839,19 +845,27 @@
           const email = clientEmailInput.value.trim();
           if (!email) return;
           try {
-            const { data } = await supabaseClient.from('userInfo').select('*').eq('email', email).maybeSingle();
+            const { data } = await supabaseClient
+              .from('userInfo')
+              .select('*')
+              .or(`email.eq.${email},client_email.eq.${email}`)
+              .maybeSingle();
+              
             if (data) {
               const nameInput = document.getElementById('clientName');
               const compInput = document.getElementById('clientCompany');
-              if (nameInput && data.name) nameInput.value = data.name;
-              if (compInput && data.company) compInput.value = data.company;
+              const foundName = data.name || data.client_name || data.full_name;
+              const foundComp = data.company || data.client_company;
+
+              if (nameInput && foundName) nameInput.value = foundName;
+              if (compInput && foundComp) compInput.value = foundComp;
             }
           } catch (e) { console.error(e); }
         });
       }
 
       // ==========================================
-      // 3. GUARDAR CITA (Appointments)
+      // 4. GUARDAR CITA (Appointments)
       // ==========================================
       const appointmentForm = document.getElementById('scheduleAppointmentForm');
       if (appointmentForm) {
@@ -884,7 +898,7 @@
       }
 
       // ==========================================
-      // 4. LOGIN
+      // 5. LOGIN
       // ==========================================
       const loginForm = document.getElementById('loginForm');
       if (loginForm) {
@@ -913,7 +927,7 @@
       }
 
       // ==========================================
-      // 5. REGISTER (Crear cuenta)
+      // 6. REGISTER (Crear cuenta)
       // ==========================================
       const registerForm = document.getElementById('registerForm');
       if (registerForm) {
