@@ -55,14 +55,12 @@
   <a href="#pricing">Pricing</a>
   <a href="#security">Security</a>
   <a href="#faq">FAQ</a>
-  <div class="nav-cta dropdown" id="authDropdownContainer">
-    <a class="btn-ghost dropdown-toggle text-decoration-none" href="#" role="button" id="authDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
-      Sign in
-    </a>
-    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="authDropdownToggle" id="authDropdownMenu">
-      <li><a class="dropdown-item" href="#loginModal" data-bs-toggle="modal">Iniciar Sesión</a></li>
-      <li><a class="dropdown-item" href="#registerModal" data-bs-toggle="modal">Registrarse</a></li>
-    </ul>
+  <div class="nav-cta">
+    <select id="authSelect" class="form-control" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 4px 15px; cursor: pointer; font-size: 14px;">
+      <option value="" selected disabled style="color: #000;">Sign in</option>
+      <option value="login" style="color: #000;">Iniciar Sesión</option>
+      <option value="register" style="color: #000;">Registrarse</option>
+    </select>
   </div>
 </div>
 
@@ -750,7 +748,7 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Maestro de Autenticación, UI y Citas -->
+<!-- 2. Script Maestro con Select Nativo -->
 <script>
   (function() {
     document.addEventListener('DOMContentLoaded', async () => {
@@ -765,9 +763,7 @@
         return;
       }
 
-      // Elementos del menú desplegable de autenticación
-      const authToggle = document.getElementById('authDropdownToggle');
-      const authMenu = document.getElementById('authDropdownMenu');
+      const authSelect = document.getElementById('authSelect');
       
       try {
         // Verificar si hay una sesión activa
@@ -775,7 +771,7 @@
         
         if (session) {
           // ==========================================
-          // USUARIO LOGUEADO
+          // ESTADO: USUARIO LOGUEADO
           // ==========================================
           const user = session.user;
           
@@ -791,28 +787,13 @@
           
           const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
-          // Actualizar el botón principal con el icono y el primer nombre
-          if (authToggle) {
-            authToggle.innerHTML = `👤 ${firstName}`;
-            authToggle.className = "btn btn-outline-light dropdown-toggle rounded-pill px-3 py-1 text-white text-decoration-none";
-            authToggle.style.fontSize = "14px";
-          }
-
-          // Actualizar las opciones del menú desplegable (Cerrar sesión)
-          if (authMenu) {
-            authMenu.innerHTML = `
-              <li><span class="dropdown-item-text text-muted small"><strong>${user.email}</strong></span></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger fw-bold" href="#" id="logoutBtn">Cerrar Sesión</a></li>
+          // Cambiar las opciones del select para mostrar el usuario y cerrar sesión
+          if (authSelect) {
+            authSelect.innerHTML = `
+              <option value="" selected disabled style="color: #000;">👤 ${firstName}</option>
+              <option value="logout" style="color: #000;">Cerrar Sesión</option>
             `;
           }
-
-          // Evento de Cerrar Sesión (recarga y saca al usuario)
-          document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-          });
 
           // Auto-llenar campos FULL NAME y EMAIL del formulario de citas
           const clientEmailInput = document.getElementById('clientEmail');
@@ -822,15 +803,46 @@
 
         } else {
           // ==========================================
-          // USUARIO NO LOGUEADO
+          // ESTADO: USUARIO NO LOGUEADO
           // ==========================================
-          if (authToggle) {
-            authToggle.innerHTML = "Sign in";
+          if (authSelect) {
+            authSelect.innerHTML = `
+              <option value="" selected disabled style="color: #000;">Sign in</option>
+              <option value="login" style="color: #000;">Iniciar Sesión</option>
+              <option value="register" style="color: #000;">Registrarse</option>
+            `;
           }
-          // El menú ya mantiene por defecto las opciones para abrir los modales de Iniciar Sesión y Registrarse
         }
       } catch (e) {
         console.error("Error al gestionar la sesión:", e);
+      }
+
+      // ==========================================
+      // MANEJADOR DE EVENTOS DEL SELECT
+      // ==========================================
+      if (authSelect) {
+        authSelect.addEventListener('change', async (e) => {
+          const value = e.target.value;
+          
+          if (value === 'login') {
+            const loginModalEl = document.getElementById('loginModal');
+            if (loginModalEl) {
+              const modal = bootstrap.Modal.getOrCreateInstance(loginModalEl);
+              modal.show();
+            }
+            authSelect.value = ""; // Limpiar selección
+          } else if (value === 'register') {
+            const registerModalEl = document.getElementById('registerModal');
+            if (registerModalEl) {
+              const modal = bootstrap.Modal.getOrCreateInstance(registerModalEl);
+              modal.show();
+            }
+            authSelect.value = ""; // Limpiar selección
+          } else if (value === 'logout') {
+            await supabaseClient.auth.signOut();
+            window.location.reload();
+          }
+        });
       }
 
       // ==========================================
@@ -895,7 +907,7 @@
       }
 
       // ==========================================
-      // LOGIN
+      // LOGIN FORM
       // ==========================================
       const loginForm = document.getElementById('loginForm');
       if (loginForm) {
@@ -920,7 +932,7 @@
       }
 
       // ==========================================
-      // REGISTER (Crear cuenta)
+      // REGISTER FORM
       // ==========================================
       const registerForm = document.getElementById('registerForm');
       if (registerForm) {
