@@ -745,10 +745,10 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Aislado y Seguro (No romperá los botones de la plantilla) -->
+<!-- 2. Script con Manejo de Sesión y UI -->
 <script>
   (function() {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
       
@@ -758,6 +758,42 @@
       } catch (err) {
         console.error("Error al iniciar Supabase:", err);
         return;
+      }
+
+      // ==========================================
+      // VERIFICAR SESIÓN ACTIVA AL CARGAR LA PÁGINA
+      // ==========================================
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+          const user = session.user;
+          console.log("Usuario conectado:", user.email);
+          
+          // BUSCAMOS DÓNDE ESTÁN LOS BOTONES DE LOGIN/REGISTER EN TU NAVBAR
+          // (Puedes crear un div con id="userNavContainer" en tu HTML o adaptarlo a tu plantilla)
+          const userNavContainer = document.getElementById('userNavContainer') || document.querySelector('.navbar-nav') || document.querySelector('header');
+          
+          if (userNavContainer) {
+            // Opcional: creamos un elemento para mostrar el usuario y el botón de salir
+            const userBox = document.createElement('div');
+            userBox.className = 'nav-item d-flex align-items-center ms-lg-3 text-white';
+            userBox.innerHTML = `
+              <span class="me-3 font-weight-bold" style="font-size: 14px;">👤 ${user.email}</span>
+              <button id="logoutBtn" class="btn btn-outline-danger btn-sm">Cerrar Sesión</button>
+            `;
+            userNavContainer.appendChild(userBox);
+          }
+
+          // Evento para Cerrar Sesión
+          document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            alert('Has cerrado sesión correctamente.');
+            window.location.reload();
+          });
+        }
+      } catch (e) {
+        console.error("Error al verificar la sesión:", e);
       }
 
       // ==========================================
@@ -832,6 +868,7 @@
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) throw error;
             alert('¡Bienvenido de nuevo!');
+            window.location.reload(); // Recarga automática al iniciar sesión exitosamente
           } catch (err) {
             alert('Error al iniciar sesión: ' + err.message);
           }
@@ -859,8 +896,8 @@
           try {
             const { error } = await supabaseClient.auth.signUp({ email, password });
             if (error) throw error;
-            alert('¡Cuenta creada con éxito! Revisa tu correo para confirmar.');
-            registerForm.reset();
+            alert('¡Cuenta creada con éxito e iniciada!');
+            window.location.reload(); // Recarga automática al registrarse
           } catch (err) {
             alert('Error al registrarse: ' + err.message);
           }
