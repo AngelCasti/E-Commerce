@@ -161,6 +161,10 @@ input[type="password"]::-webkit-password-toggle-button {
   color: var(--text, #fff);
 }
 
+#mainNav {
+  overflow: visible !important;
+}
+
 /* Solapas / Tabs para Iniciar Sesión y Registro */
 .auth-tabs {
   display: flex;
