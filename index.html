@@ -27,32 +27,21 @@
   <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
-<!-- NAV MENU NAVEGADOR -->
-<nav id="mainNav">
-  <a href="#" class="nav-logo">
-    <div class="nav-logo-mark">
-      <svg viewBox="0 0 16 16"><polyline points="2,12 6,7 10,9 14,4"/><circle cx="14" cy="4" r="1.5" fill="white" stroke="none"/></svg>
-    </div>
-    FlowSync
-  </a>
-  <div class="nav-links">
-    <a href="#features">Solutions</a>
-    <a href="#pricing">Services</a>
-    <a href="#faq">FAQ</a>
-  </div>
-  <div class="nav-cta" style="position: relative;">
-    <!-- Botón principal que abre/cierra el menú flotante -->
-    <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
+  <!-- NAVEGADOR MENU -->
+    <div class="nav-cta" style="position: relative;">
+    <!-- Botón principal: Abre el login directo o el menú de cuenta según el estado -->
+    <a href="#" class="btn-ghost" id="navAuthBtn" onclick="handleAuthClick(event)">Sign in</a>
     
-    <!-- Menú flotante -->
-    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 180px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+    <!-- Menú desplegable que solo aparece CUANDO YA SE INICIÓ SESIÓN -->
+    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 160px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+      <a href="#" onclick="alert('Ir al perfil'); return false;" style="display: block; padding: 8px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Mi perfil</a>
+      <a href="#" onclick="logoutUser(); return false;" style="display: block; padding: 8px 20px; color: #ff5c5c; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Cerrar sesión</a>
     </div>
   
-    <!-- Botones ocultos nativos que controlan los modales sin fallar -->
+    <!-- Botones ocultos nativos de Bootstrap para los modales -->
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
-</nav>
   
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
@@ -1293,35 +1282,41 @@
 
 <!-- Login -->
 <script>
-  window.toggleAuthMenu = function(event) {
-    if (event) event.preventDefault();
-    const menu = document.getElementById('customAuthMenu');
-    if (!menu) return;
-    
-    if (menu.style.display === 'block') {
-      menu.style.display = 'none';
-    } else {
-      menu.innerHTML = `
-        <a href="#" onclick="openAuthModal('login'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-        <a href="#" onclick="openAuthModal('register'); return false;" style="display: block; padding: 10px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Registrarse</a>
-      `;
-      menu.style.display = 'block';
-    }
-  };
+  // Variable para llevar el control del estado de sesión (falso por defecto)
+  let isLoggedIn = false;
 
-  window.openAuthModal = function(type) {
-    const menu = document.getElementById('customAuthMenu');
-    if (menu) menu.style.display = 'none';
+  window.handleAuthClick = function(event) {
+    if (event) event.preventDefault();
     
-    if (type === 'login') {
+    if (!isLoggedIn) {
+      // 1. Si NO ha iniciado sesión, abre directamente el modal de login de Bootstrap
       const loginBtn = document.getElementById('realLoginBtn');
       if (loginBtn) loginBtn.click();
-    } else if (type === 'register') {
-      const regBtn = document.getElementById('realRegisterBtn');
-      if (regBtn) regBtn.click();
+    } else {
+      // 2. Si YA inició sesión, despliega el menú de la cuenta
+      const menu = document.getElementById('customAuthMenu');
+      if (!menu) return;
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
   };
 
+  // Función para simular que el usuario ya inició sesión (puedes llamarla cuando seautentique con éxito)
+  window.simulateLoginSuccess = function() {
+    isLoggedIn = true;
+    const btn = document.getElementById('navAuthBtn');
+    if (btn) btn.textContent = 'Mi Cuenta ▾';
+  };
+
+  // Función para cerrar sesión
+  window.logoutUser = function() {
+    isLoggedIn = false;
+    const btn = document.getElementById('navAuthBtn');
+    if (btn) btn.textContent = 'Sign in';
+    const menu = document.getElementById('customAuthMenu');
+    if (menu) menu.style.display = 'none';
+  };
+
+  // Cierra el menú desplegable si haces clic fuera de él
   document.addEventListener('click', (e) => {
     const navCta = document.querySelector('.nav-cta');
     const menu = document.getElementById('customAuthMenu');
