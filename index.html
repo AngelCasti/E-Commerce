@@ -1279,8 +1279,50 @@
   };
 </script>
 
-<!-- Login -->
+<!-- botoncito Suscrip -->
+<script>
+  let isAnnual = false;
 
+  function togglePricing() {
+    isAnnual = !isAnnual;
+    const toggleSwitch = document.getElementById('pricingToggle');
+    
+    // 1. Mover el botón visualmente
+    if (toggleSwitch) {
+      if (isAnnual) {
+        toggleSwitch.classList.add('active');
+        toggleSwitch.style.background = 'var(--sky)';
+        const knob = toggleSwitch.querySelector('.toggle-knob');
+        if (knob) knob.style.transform = 'translateX(20px)';
+      } else {
+        toggleSwitch.classList.remove('active');
+        toggleSwitch.style.background = '';
+        const knob = toggleSwitch.querySelector('.toggle-knob');
+        if (knob) knob.style.transform = 'translateX(0)';
+      }
+    }
+
+    // 2. Cambiar los números de los precios
+    document.querySelectorAll('.price-num').forEach(num => {
+      const monthly = num.getAttribute('data-monthly');
+      const annual = num.getAttribute('data-annual');
+      num.textContent = isAnnual ? annual : monthly;
+    });
+
+    // 3. Cambiar el texto del período (monthly / annually)
+    document.querySelectorAll('.period-label').forEach(label => {
+      label.textContent = isAnnual ? 'annually' : 'monthly';
+    });
+
+    // 4. Mostrar u ocultar los textos de ahorro
+    document.querySelectorAll('.price-alt-monthly').forEach(el => {
+      el.style.display = isAnnual ? 'inline' : 'none';
+    });
+    document.querySelectorAll('.price-alt-annual').forEach(el => {
+      el.style.display = isAnnual ? 'none' : 'inline';
+    });
+  }
+</script>
 
   
 </body>
