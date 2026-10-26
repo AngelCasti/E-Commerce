@@ -1007,6 +1007,62 @@
 
 <!-- 3. Script de la plantilla Novapay al final de todo -->
 <script src="templatemo-623-novapay-script.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const statsSection = document.querySelector('.stats-section');
+    if (!statsSection) return;
+
+    // Usamos un IntersectionObserver para detectar cuando las estadísticas son visibles en pantalla
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          
+          // 1. Animar las barras de progreso
+          document.querySelectorAll('.stat-bar').forEach(bar => {
+            const targetWidth = bar.getAttribute('data-width');
+            if (targetWidth) {
+              bar.style.width = targetWidth;
+            }
+          });
+
+          // 2. Animar los números contadores
+          document.querySelectorAll('.stat-num').forEach(numEl => {
+            const target = parseFloat(numEl.getAttribute('data-target'));
+            const prefix = numEl.getAttribute('data-prefix') || '';
+            const suffix = numEl.getAttribute('data-suffix') || '';
+            const decimal = parseInt(numEl.getAttribute('data-decimal')) || 0;
+            
+            if (isNaN(target)) return;
+
+            let current = 0;
+            const duration = 2000; // Duración de la animación en milisegundos (2 segundos)
+            const steps = 60;
+            const increment = target / steps;
+            const stepTime = duration / steps;
+
+            const timer = setInterval(() => {
+              current += increment;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              // Formatear el número con sus prefijos, sufijos y decimales correspondientes
+              numEl.textContent = prefix + current.toFixed(decimal) + suffix;
+            }, stepTime);
+          });
+
+          // Dejar de observar una vez que se ejecutó la animación
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    observer.observe(statsSection);
+  });
+</script>
+
+
   
 </body>
 </html>
