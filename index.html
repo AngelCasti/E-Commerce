@@ -25,121 +25,40 @@
     const authModal = document.getElementById('authModal');
     const closeBtn = document.getElementById('closeAuthModal');
 
-    // Validación para ver si los elementos existen en tu HTML
-    if (!navBtn) console.error("⚠️ No se encontró el botón #navAuthBtn");
-    if (!authModal) console.error("⚠️ No se encontró la ventana #authModal");
-
-    // 1. Abrir el modal al hacer clic en Sign in
     if (navBtn && authModal) {
       navBtn.addEventListener('click', (e) => {
         e.preventDefault();
         console.log("🔓 Abriendo #authModal...");
-        // Forzamos el despliegue ignorando cualquier regla de la plantilla
+        
+        // Forzamos display, opacidad y visibilidad para evitar que el CSS de la plantilla lo oculte
         authModal.style.setProperty('display', 'flex', 'important');
+        authModal.style.setProperty('opacity', '1', 'important');
+        authModal.style.setProperty('visibility', 'visible', 'important');
         authModal.classList.add('active');
       });
     }
 
-    // 2. Cerrar el modal al hacer clic en la "X"
     if (closeBtn && authModal) {
       closeBtn.addEventListener('click', () => {
-        console.log("🔒 Cerrando #authModal...");
         authModal.style.setProperty('display', 'none', 'important');
+        authModal.style.setProperty('opacity', '0', 'important');
+        authModal.style.setProperty('visibility', 'hidden', 'important');
         authModal.classList.remove('active');
       });
     }
 
-    // 3. Cerrar si hacen clic fuera de la tarjeta gris del modal
     if (authModal) {
       authModal.addEventListener('click', (e) => {
         if (e.target === authModal) {
           authModal.style.setProperty('display', 'none', 'important');
+          authModal.style.setProperty('opacity', '0', 'important');
+          authModal.style.setProperty('visibility', 'hidden', 'important');
           authModal.classList.remove('active');
         }
       });
     }
   });
 </script>
-<script>
-  let isLoggedIn = false;
-
-  // Función principal del botón Sign In / Mi Cuenta
-  window.handleAuthClick = function(event) {
-    if (event) event.preventDefault();
-    
-    if (!isLoggedIn) {
-      // Abre tu modal personalizado (#authModal)
-      const modal = document.getElementById('authModal');
-      if (modal) {
-        modal.classList.add('active'); // Si tu CSS usa la clase .active
-        modal.style.display = 'flex';  // Por si tu CSS usa display flex para centrar
-        
-        // Asegura que abra en la pestaña de Login por defecto
-        if (typeof switchAuthTab === 'function') {
-          switchAuthTab('login');
-        }
-      }
-    } else {
-      // Si ya inició sesión, despliega el menú de cuenta
-      const menu = document.getElementById('customAuthMenu');
-      if (menu) {
-        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-      }
-    }
-  };
-
-  // Escuchador para cerrar el modal al hacer clic en la "X" (#closeAuthModal)
-  document.addEventListener('DOMContentLoaded', () => {
-    const closeBtn = document.getElementById('closeAuthModal');
-    const modal = document.getElementById('authModal');
-    
-    if (closeBtn && modal) {
-      closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-        modal.style.display = 'none';
-      });
-    }
-
-    // Opcional: Cerrar al hacer clic fuera de la tarjeta del modal
-    if (modal) {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.classList.remove('active');
-          modal.style.display = 'none';
-        }
-      });
-    }
-  });
-
-  // Funciones de prueba para cambiar de estado cuando te autentiques
-  window.simulateLoginSuccess = function() {
-    isLoggedIn = true;
-    const btn = document.getElementById('navAuthBtn');
-    if (btn) btn.textContent = 'Mi Cuenta ▾';
-    const modal = document.getElementById('authModal');
-    if (modal) {
-      modal.classList.remove('active');
-      modal.style.display = 'none';
-    }
-  };
-
-  window.logoutUser = function() {
-    isLoggedIn = false;
-    const btn = document.getElementById('navAuthBtn');
-    if (btn) btn.textContent = 'Sign in';
-    const menu = document.getElementById('customAuthMenu');
-    if (menu) menu.style.display = 'none';
-  };
-
-  // Cierra el menú desplegable de "Mi Cuenta" al hacer clic fuera
-  document.addEventListener('click', (e) => {
-    const navCta = document.querySelector('.nav-cta');
-    const menu = document.getElementById('customAuthMenu');
-    if (navCta && menu && !navCta.contains(e.target)) {
-      menu.style.display = 'none';
-    }
-  });
-</script>  
 </head>
 <body>
 
@@ -818,8 +737,6 @@
       list.innerHTML = htmlContent;
     }
   })();
-
-  let allExpanded = false;
 
   window.toggleFaq = function(index) {
     const answer = document.getElementById(`faq-answer-${index}`);
