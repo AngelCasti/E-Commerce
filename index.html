@@ -1110,6 +1110,47 @@
     }
 
   });
+
+// ==========================================
+  // CAMBIAR DE PESTAÑA (Login / Register)
+  // ==========================================
+  window.switchAuthTab = function(tabName) {
+    const loginFormContainer = document.getElementById('loginFormContainer');
+    const registerFormContainer = document.getElementById('registerFormContainer');
+    
+    const tabLoginBtn = document.getElementById('tabLoginBtn');
+    const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+
+    if (tabName === 'login') {
+      if (loginFormContainer) loginFormContainer.style.display = 'block';
+      if (registerFormContainer) registerFormContainer.style.display = 'none';
+      if (tabLoginBtn) tabLoginBtn.classList.add('active');
+      if (tabRegisterBtn) tabRegisterBtn.classList.remove('active');
+    } else if (tabName === 'register') {
+      if (loginFormContainer) loginFormContainer.style.display = 'none';
+      if (registerFormContainer) registerFormContainer.style.display = 'block';
+      if (tabLoginBtn) tabLoginBtn.classList.remove('active');
+      if (tabRegisterBtn) tabRegisterBtn.classList.add('active');
+    }
+  };
+
+  // ==========================================
+  // BOTÓN VER / OCULTAR CONTRASEÑA
+  // ==========================================
+  window.togglePassword = function(inputId, buttonIconId) {
+    const passwordInput = document.getElementById(inputId);
+    const iconBtn = document.getElementById(buttonIconId);
+    
+    if (passwordInput) {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        if (iconBtn) iconBtn.textContent = '🔒'; // Cambia el icono si lo deseas
+      } else {
+        passwordInput.type = 'password';
+        if (iconBtn) iconBtn.textContent = '👁️';
+      }
+    }
+  };  
 </script>
 
 <!-- Porcentajes mamalones -->
