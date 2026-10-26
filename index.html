@@ -1061,7 +1061,71 @@
     observer.observe(statsSection);
   });
 </script>
+<script>
+  const testimonialsData = [
+    { name: "Sarah Jenkins", role: "CTO at FinTech Global", text: "Novapay completely transformed how we handle international transactions. Incredible speed and security." },
+    { name: "Marcus Chen", role: "Lead Engineer at Apex", text: "The API integration was seamless. We saved weeks of development time thanks to their robust documentation." },
+    { name: "Elena Rostova", role: "Product Manager at PayFlow", text: "Outstanding uptime and reliability. Our customers haven't experienced a single second of downtime." },
+    { name: "David Miller", role: "Founder & CEO", text: "The best payment automation platform we've used. Highly recommended for scaling companies." }
+  ];
 
+  let isPaused = false;
+
+  function renderTestimonials() {
+    const track = document.getElementById('testiTrack');
+    if (!track) return;
+    
+    // Duplicamos los datos para lograr el bucle infinito perfecto
+    const duplicatedData = [...testimonialsData, ...testimonialsData];
+    
+    let htmlContent = '';
+    duplicatedData.forEach(t => {
+      htmlContent += `
+        <div class="testi-card">
+          <div class="testi-stars">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <p class="testi-quote">"${t.text}"</p>
+          <div class="testi-author">
+            <div class="testi-avatar">${t.name.charAt(0)}</div>
+            <div>
+              <div class="testi-name">${t.name}</div>
+              <div class="testi-role">${t.role}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    track.innerHTML = htmlContent;
+  }
+
+  window.toggleTestimonials = function() {
+    const track = document.getElementById('testiTrack');
+    const label = document.getElementById('testiLabel');
+    const icon = document.getElementById('testiIcon');
+    
+    if (!track) return;
+
+    isPaused = !isPaused;
+    if (isPaused) {
+      track.style.animationPlayState = 'paused';
+      label.textContent = 'Play';
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21" fill="currentColor"/>';
+    } else {
+      track.style.animationPlayState = 'running';
+      label.textContent = 'Pause';
+      icon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderTestimonials();
+  });
+</script>
 
   
 </body>
