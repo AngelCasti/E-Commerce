@@ -833,255 +833,247 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Maestro -->
+<!-- 2. Script Maestro Unificado (Supabase + Autenticación + Modales) -->
 <script>
-  // Función global para mostrar/ocultar el menú flotante
-  window.toggleAuthMenu = function(e) {
-    e.preventDefault();
-    const menu = document.getElementById('customAuthMenu');
-    menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-  };
+  // Variable global para saber si hay sesión activa
+  window.isUserLoggedIn = false;
 
-  // Función para activar los botones ocultos y cerrar el menú
-  window.triggerModal = function(btnId, event) {
-    if (event) event.preventDefault();
+  // Función global para abrir el modal de autenticación limpiamente
+  window.openAuthModal = function(tabName) {
     const menu = document.getElementById('customAuthMenu');
     if (menu) menu.style.display = 'none';
     
-    const btn = document.getElementById(btnId);
-    if (btn) btn.click();
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+      authModal.style.setProperty('display', 'flex', 'important');
+      authModal.style.setProperty('opacity', '1', 'important');
+      authModal.style.setProperty('visibility', 'visible', 'important');
+      authModal.style.setProperty('pointer-events', 'auto', 'important');
+      authModal.classList.add('active');
+      
+      // Cambiar a la pestaña de login o register si existe la función
+      if (tabName && typeof switchAuthTab === 'function') {
+        switchAuthTab(tabName);
+      }
+    }
   };
 
-  // Cerrar el menú si se hace clic fuera de él
-  document.addEventListener('click', (e) => {
-    const navCta = document.querySelector('.nav-cta');
-    const menu = document.getElementById('customAuthMenu');
-    if (navCta && menu && !navCta.contains(e.target)) {
-      menu.style.display = 'none';
+  // Función para cerrar el modal de forma segura
+  window.closeAuthModal = function() {
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+      authModal.style.setProperty('display', 'none', 'important');
+      authModal.style.setProperty('opacity', '0', 'important');
+      authModal.style.setProperty('visibility', 'hidden', 'important');
+      authModal.style.setProperty('pointer-events', 'none', 'important');
+      authModal.classList.remove('active');
     }
-  });
+  };
 
-  (function() {
-    document.addEventListener('DOMContentLoaded', async () => {
-      const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
-      
-      let supabaseClient;
-      try {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } catch (err) {
-        console.error("Error al iniciar Supabase:", err);
-        return;
-      }
+  document.addEventListener('DOMContentLoaded', async () => {
+    const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
+    
+    let supabaseClient;
+    try {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (err) {
+      console.error("Error al iniciar Supabase:", err);
+      return;
+    }
 
-      const navAuthBtn = document.getElementById('navAuthBtn');
-      const authMenu = document.getElementById('customAuthMenu');
+    const navAuthBtn = document.getElementById('navAuthBtn');
+    const authMenu = document.getElementById('customAuthMenu');
+    const closeBtn = document.getElementById('closeAuthModal');
+    
+    // Configurar botón de cerrar modal ("X")
+    if (closeBtn) {
+      closeBtn.addEventListener('click', window.closeAuthModal);
+    }
+
+    // Cerrar modal al hacer clic fuera de la tarjeta
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+      authModal.addEventListener('click', (e) => {
+        if (e.target === authModal) {
+          window.closeAuthModal();
+        }
+      });
+    }
+    
+    try {
+      // Verificar sesión activa en Supabase
+      const { data: { session } } = await supabaseClient.auth.getSession();
       
-      try {
-        // Verificar sesión activa en Supabase
-        const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        // ==========================================
+        // ESTADO: USUARIO LOGUEADO
+        // ==========================================
+        window.isUserLoggedIn = true;
+        const user = session.user;
         
-        if (session) {
-          // ==========================================
-          // ESTADO: USUARIO LOGUEADO
-          // ==========================================
-          const user = session.user;
-          
-          let fullName = user.user_metadata?.full_name || '';
-          if (!fullName) {
-            const { data: profile } = await supabaseClient
-              .from('userInfo')
-              .select('*')
-              .or(`email.eq.${user.email},client_email.eq.${user.email}`)
-              .maybeSingle();
-            if (profile) fullName = profile.name || profile.client_name || profile.full_name || '';
-          }
-          
-          const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
+        let fullName = user.user_metadata?.full_name || '';
+        if (!fullName) {
+          const { data: profile } = await supabaseClient
+            .from('userInfo')
+            .select('*')
+            .or(`email.eq.${user.email},client_email.eq.${user.email}`)
+            .maybeSingle();
+          if (profile) fullName = profile.name || profile.client_name || profile.full_name || '';
+        }
+        
+        const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
-          // Cambiar el botón principal por el icono y el primer nombre
-        // Cambiar el botón principal por una cápsula moderna y elegante
-          if (navAuthBtn) {
-            navAuthBtn.innerHTML = `👤 <span style="margin-left: 6px; font-weight: 600;">${firstName}</span>`;
-            navAuthBtn.className = ""; // Limpiamos clases heredadas que causaban el subrayado
-            navAuthBtn.style.cssText = `
-              display: inline-flex;
-              align-items: center;
-              background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-              border: 1px solid rgba(255, 255, 255, 0.3);
-              color: #ffffff !important;
-              padding: 6px 18px;
-              border-radius: 50px;
-              text-decoration: none !important;
-              font-size: 14px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-              backdrop-filter: blur(5px);
-              cursor: pointer;
-            `;
-          }
+        // Estilizar el botón superior como perfil de usuario
+        if (navAuthBtn) {
+          navAuthBtn.innerHTML = `👤 <span style="margin-left: 6px; font-weight: 600;">${firstName} ▾</span>`;
+          navAuthBtn.className = ""; 
+          navAuthBtn.style.cssText = `
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff !important;
+            padding: 6px 18px;
+            border-radius: 50px;
+            text-decoration: none !important;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+          `;
+        }
 
-          // Llenar el menú flotante con los datos del usuario y la opción de cerrar sesión
-          if (authMenu) {
-            authMenu.innerHTML = `
-              <div style="padding: 0 15px 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px;">
-                <span style="font-size: 12px; color: #aaa; display: block; word-break: break-all;"><strong>${user.email}</strong></span>
-              </div>
-              <a href="#" id="logoutBtn" style="display: block; padding: 8px 15px; color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cerrar Sesión</a>
-            `;
-          }
+        // Llenar el menú flotante con opciones de cuenta y cierre de sesión
+        if (authMenu) {
+          authMenu.innerHTML = `
+            <div style="padding: 10px 15px 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px;">
+              <span style="font-size: 11px; color: #aaa; display: block;">Conectado como:</span>
+              <strong style="font-size: 12px; color: #fff; word-break: break-all;">${user.email}</strong>
+            </div>
+            <a href="#" onclick="alert('Ir al perfil'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Mi perfil</a>
+            <a href="#" id="logoutBtn" style="display: block; padding: 8px 15px; color: #ff6b6b; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cerrar Sesión</a>
+          `;
+        }
 
-          // Evento de Cerrar Sesión
-          document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabaseClient.auth.signOut();
-            window.location.reload();
-          });
+        // Evento de Cerrar Sesión
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await supabaseClient.auth.signOut();
+          window.location.reload();
+        });
 
-          // Auto-llenar campos FULL NAME y EMAIL del formulario de citas
-          const clientEmailInput = document.getElementById('clientEmail');
-          const clientNameInput = document.getElementById('clientName');
-          if (clientEmailInput && !clientEmailInput.value) clientEmailInput.value = user.email;
-          if (clientNameInput && !clientNameInput.value && fullName) clientNameInput.value = fullName;
+        // Auto-llenar campos del formulario de citas[cite: 1]
+        const clientEmailInput = document.getElementById('clientEmail');
+        const clientNameInput = document.getElementById('clientName');
+        if (clientEmailInput && !clientEmailInput.value) clientEmailInput.value = user.email;
+        if (clientNameInput && !clientNameInput.value && fullName) clientNameInput.value = fullName;
 
+      } else {
+        // ==========================================
+        // ESTADO: USUARIO NO LOGUEADO
+        // ==========================================
+        window.isUserLoggedIn = false;
+        
+        if (navAuthBtn) {
+          navAuthBtn.innerHTML = "Sign in";
+        }
+        
+        if (authMenu) {
+          authMenu.innerHTML = `
+            <a href="#" onclick="window.openAuthModal('login'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
+            <a href="#" onclick="window.openAuthModal('register'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
+          `;
+        }
+      }
+    } catch (e) {
+      console.error("Error al gestionar la sesión:", e);
+    }
+
+    // Manejador inteligente del botón principal de navegación
+    if (navAuthBtn) {
+      navAuthBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!window.isUserLoggedIn) {
+          // Si no ha iniciado sesión, abre el modal de login directamente
+          window.openAuthModal('login');
         } else {
-          // ==========================================
-          // ESTADO: USUARIO NO LOGUEADO
-          // ==========================================
-          if (navAuthBtn) {
-            navAuthBtn.innerHTML = "Sign in";
-          }
-          
+          // Si ya inició sesión, despliega el menú de cuenta
           if (authMenu) {
-            authMenu.innerHTML = `
-              <a href="#" onclick="triggerModal('realLoginBtn', event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-              <a href="#" onclick="triggerModal('realRegisterBtn', event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
-            `;
+            authMenu.style.display = (authMenu.style.display === 'block') ? 'none' : 'block';
           }
         }
-      } catch (e) {
-        console.error("Error al gestionar la sesión:", e);
+      });
+    }
+
+    // Cerrar menú flotante al hacer clic fuera[cite: 1]
+    document.addEventListener('click', (e) => {
+      const navCta = document.querySelector('.nav-cta');
+      if (navCta && authMenu && !navCta.contains(e.target)) {
+        authMenu.style.display = 'none';
       }
-
-      // ==========================================
-      // AUTOCOMPLETAR DESDE 'userInfo' (Al cambiar correo)
-      // ==========================================
-      const clientEmailInput = document.getElementById('clientEmail');
-      if (clientEmailInput) {
-        clientEmailInput.addEventListener('blur', async () => {
-          const email = clientEmailInput.value.trim();
-          if (!email) return;
-          try {
-            const { data } = await supabaseClient
-              .from('userInfo')
-              .select('*')
-              .or(`email.eq.${email},client_email.eq.${email}`)
-              .maybeSingle();
-              
-            if (data) {
-              const nameInput = document.getElementById('clientName');
-              const compInput = document.getElementById('clientCompany');
-              const foundName = data.name || data.client_name || data.full_name;
-              const foundComp = data.company || data.client_company;
-
-              if (nameInput && foundName) nameInput.value = foundName;
-              if (compInput && foundComp) compInput.value = foundComp;
-            }
-          } catch (err) { console.error(err); }
-        });
-      }
-
-      // ==========================================
-      // GUARDAR CITA (Appointments)
-      // ==========================================
-      const appointmentForm = document.getElementById('scheduleAppointmentForm');
-      if (appointmentForm) {
-        appointmentForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const clientName = document.getElementById('clientName')?.value.trim() || '';
-          const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
-          const appointmentDate = document.getElementById('appointmentDate')?.value || '';
-          const appointmentTime = document.getElementById('appointmentTime')?.value || '';
-          
-          if (!clientName || !clientEmail || !appointmentDate || !appointmentTime) {
-            alert('Por favor completa los campos obligatorios de la cita.');
-            return;
-          }
-
-          try {
-            const { error } = await supabaseClient.from('appointments').insert([{
-              client_name: clientName,
-              client_email: clientEmail,
-              appointment_date: appointmentDate,
-              appointment_time: appointmentTime
-            }]);
-            if (error) throw error;
-            alert('¡Cita solicitada con éxito!');
-            appointmentForm.reset();
-          } catch (err) {
-            alert('Error al guardar la cita: ' + err.message);
-          }
-        });
-      }
-
-      // ==========================================
-      // LOGIN
-      // ==========================================
-      const loginForm = document.getElementById('loginForm');
-      if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const emailInput = loginForm.querySelector('#loginEmail') || loginForm.querySelector('#email') || loginForm.querySelector('input[type="email"]');
-          const passwordInput = loginForm.querySelector('#loginPassword') || loginForm.querySelector('#password') || loginForm.querySelector('input[type="password"]');
-          
-          const email = emailInput ? emailInput.value.trim() : '';
-          const password = passwordInput ? passwordInput.value : '';
-          
-          if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
-
-          try {
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            window.location.reload();
-          } catch (err) {
-            alert('Error al iniciar sesión: ' + err.message);
-          }
-        });
-      }
-
-      // ==========================================
-      // REGISTER (Crear cuenta)
-      // ==========================================
-      const registerForm = document.getElementById('registerForm');
-      if (registerForm) {
-        registerForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const nameInput = registerForm.querySelector('#registerName') || registerForm.querySelector('#name') || registerForm.querySelector('input[placeholder*="Name" i]');
-          const emailInput = registerForm.querySelector('#registerEmail') || registerForm.querySelector('#email') || registerForm.querySelector('input[type="email"]');
-          const passwordInput = registerForm.querySelector('#registerPassword') || registerForm.querySelector('#password') || registerForm.querySelector('input[type="password"]');
-          
-          const name = nameInput ? nameInput.value.trim() : '';
-          const email = emailInput ? emailInput.value.trim() : '';
-          const password = passwordInput ? passwordInput.value : '';
-          
-          if (!email || !password) return alert('Por favor llena todos los campos.');
-
-          try {
-            const { error } = await supabaseClient.auth.signUp({ 
-              email, 
-              password,
-              options: { data: { full_name: name } }
-            });
-            if (error) throw error;
-            alert('¡Cuenta creada con éxito!');
-            window.location.reload();
-          } catch (err) {
-            alert('Error al registrarse: ' + err.message);
-          }
-        });
-      }
-
     });
-  })();
+
+    // ==========================================
+    // LOGIN[cite: 1]
+    // ==========================================
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailInput = loginForm.querySelector('#loginEmail');
+        const passwordInput = loginForm.querySelector('#loginPassword');
+        
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        
+        if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
+
+        try {
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          window.location.reload();
+        } catch (err) {
+          alert('Error al iniciar sesión: ' + err.message);
+        }
+      });
+    }
+
+    // ==========================================
+    // REGISTER (Crear cuenta)[cite: 1]
+    // ==========================================
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameInput = registerForm.querySelector('#regName');
+        const emailInput = registerForm.querySelector('#regEmail');
+        const passwordInput = registerForm.querySelector('#regPassword');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        
+        if (!email || !password) return alert('Por favor llena todos los campos.');
+
+        try {
+          const { error } = await supabaseClient.auth.signUp({ 
+            email, 
+            password,
+            options: { data: { full_name: name } }
+          });
+          if (error) throw error;
+          alert('¡Cuenta creada con éxito!');
+          window.location.reload();
+        } catch (err) {
+          alert('Error al registrarse: ' + err.message);
+        }
+      });
+    }
+
+  });
 </script>
 
 <!-- Porcentajes mamalones -->
@@ -1288,97 +1280,7 @@
 </script>
 
 <!-- Login -->
-<script>
-  // Estado global de la sesión
-  window.isLoggedIn = false;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const navBtn = document.getElementById('navAuthBtn');
-    const authModal = document.getElementById('authModal');
-    const closeBtn = document.getElementById('closeAuthModal');
-    const customMenu = document.getElementById('customAuthMenu');
-    const loginForm = document.getElementById('loginForm');
-
-    if (!navBtn) return;
-
-    // 1. Control del botón principal (Sign In / Mi Cuenta)
-    navBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      if (!window.isLoggedIn) {
-        // --- ESTADO: NO LOGUEADO (Abre tu modal tal cual lo querías) ---
-        if (authModal) {
-          authModal.style.setProperty('display', 'flex', 'important');
-          authModal.style.setProperty('opacity', '1', 'important');
-          authModal.style.setProperty('visibility', 'visible', 'important');
-          authModal.style.setProperty('pointer-events', 'auto', 'important');
-          authModal.classList.add('active');
-        }
-      } else {
-        // --- ESTADO: LOGUEADO (Abre el menú desplegable de cuenta) ---
-        if (customMenu) {
-          const isOpen = customMenu.style.display === 'block';
-          customMenu.style.display = isOpen ? 'none' : 'block';
-        }
-      }
-    });
-
-    // 2. Botón "X" para cerrar el modal
-    if (closeBtn && authModal) {
-      closeBtn.addEventListener('click', () => {
-        authModal.style.setProperty('display', 'none', 'important');
-        authModal.style.setProperty('opacity', '0', 'important');
-        authModal.style.setProperty('visibility', 'hidden', 'important');
-        authModal.style.setProperty('pointer-events', 'none', 'important');
-        authModal.classList.remove('active');
-      });
-    }
-
-    // 3. Al enviar el formulario de login (Simula inicio de sesión exitoso)
-    if (loginForm) {
-      loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Evita recargar la página
-        window.isLoggedIn = true;
-
-        // Cambiamos el texto del botón superior
-        navBtn.textContent = 'Mi Cuenta ▾';
-
-        // Cerramos el modal
-        if (authModal) {
-          authModal.style.setProperty('display', 'none', 'important');
-          authModal.style.setProperty('opacity', '0', 'important');
-          authModal.style.setProperty('visibility', 'hidden', 'important');
-          authModal.style.setProperty('pointer-events', 'none', 'important');
-          authModal.classList.remove('active');
-        }
-
-        console.log("✅ Sesión iniciada correctamente.");
-      });
-    }
-
-    // 4. Cierra el menú desplegable si haces clic fuera de él
-    document.addEventListener('click', (e) => {
-      if (customMenu && navBtn) {
-        if (!customMenu.contains(e.target) && !navBtn.contains(e.target)) {
-          customMenu.style.display = 'none';
-        }
-      }
-    });
-  });
-
-  // 5. Función global para cerrar sesión
-  window.logoutUser = function() {
-    window.isLoggedIn = false;
-    const navBtn = document.getElementById('navAuthBtn');
-    if (navBtn) navBtn.textContent = 'Sign in';
-    
-    const customMenu = document.getElementById('customAuthMenu');
-    if (customMenu) customMenu.style.display = 'none';
-    
-    console.log("🔒 Sesión cerrada.");
-  };
-</script>
 
   
 </body>
