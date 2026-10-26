@@ -19,72 +19,6 @@
   Credit link to TemplateMo is required.
 ================================================================================
 -->
-<script>
-  // Variable global de estado de sesión
-  window.isLoggedIn = false;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const navBtn = document.getElementById('navAuthBtn');
-    const customMenu = document.getElementById('customAuthMenu');
-    const authModal = document.getElementById('authModal');
-    const loginForm = document.getElementById('loginForm');
-
-    // 1. Interceptamos el clic ANTES que el script viejo usando 'true' (fase de captura)
-    if (navBtn) {
-      navBtn.addEventListener('click', (e) => {
-        if (window.isLoggedIn) {
-          e.stopImmediatePropagation(); // ¡Frena al script viejo para que no abra el modal!
-          e.preventDefault();
-          
-          if (customMenu) {
-            const isOpen = customMenu.style.display === 'block';
-            customMenu.style.display = isOpen ? 'none' : 'block';
-          }
-        }
-      }, true); // <--- Este 'true' es la clave para adelantarnos al script viejo
-    }
-
-    // 2. Al enviar el formulario de login, activamos la sesión y cerramos el modal
-    if (loginForm) {
-      loginForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // Evita que recargue la página
-        window.isLoggedIn = true;
-
-        // Cambiamos el texto del botón superior
-        if (navBtn) navBtn.textContent = 'Mi Cuenta ▾';
-
-        // Ocultamos el modal de login
-        if (authModal) {
-          authModal.style.setProperty('display', 'none', 'important');
-          authModal.classList.remove('active');
-        }
-        
-        console.log("✅ Sesión iniciada. El botón ahora abrirá el menú desplegable.");
-      });
-    }
-
-    // 3. Cierra el menú desplegable si haces clic fuera de él
-    document.addEventListener('click', (e) => {
-      if (customMenu && navBtn) {
-        if (!customMenu.contains(e.target) && !navBtn.contains(e.target)) {
-          customMenu.style.display = 'none';
-        }
-      }
-    });
-  });
-
-  // 4. Función global para cerrar sesión (llamada desde tu enlace de cerrar sesión)
-  window.logoutUser = function() {
-    window.isLoggedIn = false;
-    const navBtn = document.getElementById('navAuthBtn');
-    if (navBtn) navBtn.textContent = 'Sign in';
-    
-    const customMenu = document.getElementById('customAuthMenu');
-    if (customMenu) customMenu.style.display = 'none';
-    
-    console.log("🔒 Sesión cerrada correctamente.");
-  };
-</script>
 </head>
 <body>
 
@@ -1354,6 +1288,98 @@
 </script>
 
 <!-- Login -->
+<script>
+  // Estado global de la sesión
+  window.isLoggedIn = false;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const navBtn = document.getElementById('navAuthBtn');
+    const authModal = document.getElementById('authModal');
+    const closeBtn = document.getElementById('closeAuthModal');
+    const customMenu = document.getElementById('customAuthMenu');
+    const loginForm = document.getElementById('loginForm');
+
+    if (!navBtn) return;
+
+    // 1. Control del botón principal (Sign In / Mi Cuenta)
+    navBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (!window.isLoggedIn) {
+        // --- ESTADO: NO LOGUEADO (Abre tu modal tal cual lo querías) ---
+        if (authModal) {
+          authModal.style.setProperty('display', 'flex', 'important');
+          authModal.style.setProperty('opacity', '1', 'important');
+          authModal.style.setProperty('visibility', 'visible', 'important');
+          authModal.style.setProperty('pointer-events', 'auto', 'important');
+          authModal.classList.add('active');
+        }
+      } else {
+        // --- ESTADO: LOGUEADO (Abre el menú desplegable de cuenta) ---
+        if (customMenu) {
+          const isOpen = customMenu.style.display === 'block';
+          customMenu.style.display = isOpen ? 'none' : 'block';
+        }
+      }
+    });
+
+    // 2. Botón "X" para cerrar el modal
+    if (closeBtn && authModal) {
+      closeBtn.addEventListener('click', () => {
+        authModal.style.setProperty('display', 'none', 'important');
+        authModal.style.setProperty('opacity', '0', 'important');
+        authModal.style.setProperty('visibility', 'hidden', 'important');
+        authModal.style.setProperty('pointer-events', 'none', 'important');
+        authModal.classList.remove('active');
+      });
+    }
+
+    // 3. Al enviar el formulario de login (Simula inicio de sesión exitoso)
+    if (loginForm) {
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Evita recargar la página
+        window.isLoggedIn = true;
+
+        // Cambiamos el texto del botón superior
+        navBtn.textContent = 'Mi Cuenta ▾';
+
+        // Cerramos el modal
+        if (authModal) {
+          authModal.style.setProperty('display', 'none', 'important');
+          authModal.style.setProperty('opacity', '0', 'important');
+          authModal.style.setProperty('visibility', 'hidden', 'important');
+          authModal.style.setProperty('pointer-events', 'none', 'important');
+          authModal.classList.remove('active');
+        }
+
+        console.log("✅ Sesión iniciada correctamente.");
+      });
+    }
+
+    // 4. Cierra el menú desplegable si haces clic fuera de él
+    document.addEventListener('click', (e) => {
+      if (customMenu && navBtn) {
+        if (!customMenu.contains(e.target) && !navBtn.contains(e.target)) {
+          customMenu.style.display = 'none';
+        }
+      }
+    });
+  });
+
+  // 5. Función global para cerrar sesión
+  window.logoutUser = function() {
+    window.isLoggedIn = false;
+    const navBtn = document.getElementById('navAuthBtn');
+    if (navBtn) navBtn.textContent = 'Sign in';
+    
+    const customMenu = document.getElementById('customAuthMenu');
+    if (customMenu) customMenu.style.display = 'none';
+    
+    console.log("🔒 Sesión cerrada.");
+  };
+</script>
+
   
 </body>
 </html>
