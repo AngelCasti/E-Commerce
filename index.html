@@ -1240,6 +1240,56 @@
   });
 </script>
 
+<!-- Botoncito de precios -->
+  <script>
+  let isAnnual = false;
+
+  window.togglePricing = function() {
+    isAnnual = !isAnnual;
+    const toggleSwitch = document.getElementById('pricingToggle');
+    
+    // 1. Mover visualmente el botón (toggle switch)
+    if (toggleSwitch) {
+      if (isAnnual) {
+        toggleSwitch.classList.add('active'); // O ajusta el estilo si tu plantilla usa otra clase (ej. .annual)
+        toggleSwitch.style.background = 'var(--sky)'; // Si usa estilo en línea para el fondo activo
+        const knob = toggleSwitch.querySelector('.toggle-knob');
+        if (knob) knob.style.transform = 'translateX(20px)';
+      } else {
+        toggleSwitch.classList.remove('active');
+        toggleSwitch.style.background = '';
+        const knob = toggleSwitch.querySelector('.toggle-knob');
+        if (knob) knob.style.transform = 'translateX(0)';
+      }
+    }
+
+    // 2. Cambiar los precios dinámicamente
+    const priceNums = document.querySelectorAll('.price-num');
+    priceNums.forEach(num => {
+      const monthly = num.getAttribute('data-monthly');
+      const annual = num.getAttribute('data-annual');
+      num.textContent = isAnnual ? annual : monthly;
+    });
+
+    // 3. Cambiar los textos de periodo ('monthly' / 'annual')
+    const periodLabels = document.querySelectorAll('.period-label');
+    periodLabels.forEach(label => {
+      label.textContent = isAnnual ? 'annually' : 'monthly';
+    });
+
+    // 4. Mostrar u ocultar los textos alternativos de ahorro / cobro total
+    const altMonthly = document.querySelectorAll('.price-alt-monthly');
+    const altAnnual = document.querySelectorAll('.price-alt-annual');
+
+    altMonthly.forEach(el => {
+      el.style.display = isAnnual ? 'inline' : 'none';
+    });
+
+    altAnnual.forEach(el => {
+      el.style.display = isAnnual ? 'none' : 'inline';
+    });
+  };
+</script>
   
 </body>
 </html>
