@@ -1039,37 +1039,53 @@
       });
     }
 
-    // ==========================================
-    // REGISTER (Crear cuenta)[cite: 1]
-    // ==========================================
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) {
-      registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nameInput = registerForm.querySelector('#regName');
-        const emailInput = registerForm.querySelector('#regEmail');
-        const passwordInput = registerForm.querySelector('#regPassword');
-        
-        const name = nameInput ? nameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
-        const password = passwordInput ? passwordInput.value : '';
-        
-        if (!email || !password) return alert('Por favor llena todos los campos.');
+      // ==========================================
+      // REGISTER (Crear cuenta)
+      // ==========================================
+      const registerForm = document.getElementById('registerForm');
+      if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const nameInput = registerForm.querySelector('#regName');
+          const emailInput = registerForm.querySelector('#regEmail');
+          const passwordInput = registerForm.querySelector('#regPassword');
+          
+          const name = nameInput ? nameInput.value.trim() : '';
+          const email = emailInput ? emailInput.value.trim() : '';
+          const password = passwordInput ? passwordInput.value : '';
+          
+          if (!email || !password) return alert('Por favor llena todos los campos.');
 
-        try {
-          const { error } = await supabaseClient.auth.signUp({ 
-            email, 
-            password,
-            options: { data: { full_name: name } }
-          });
-          if (error) throw error;
-          alert('¡Cuenta creada con éxito!');
-          window.location.reload();
-        } catch (err) {
-          alert('Error al registrarse: ' + err.message);
-        }
-      });
-    }
+          try {
+            // 1. Crear el usuario en el sistema de autenticación de Supabase
+            const { data, error } = await supabaseClient.auth.signUp({ 
+              email, 
+              password,
+              options: { data: { full_name: name } }
+            });
+            if (error) throw error;
+
+            // 2. Insertar también una copia en tu tabla 'userInfo' para que aparezca ahí
+            const { error: insertError } = await supabaseClient.from('userInfo').insert([
+              { 
+                email: email, 
+                name: name,
+                client_email: email,
+                client_name: name 
+              }
+            ]);
+            
+            if (insertError) {
+              console.warn("Usuario creado en Auth, pero hubo un detalle al guardarlo en userInfo:", insertError.message);
+            }
+
+            alert('¡Cuenta creada con éxito!');
+            window.location.reload();
+          } catch (err) {
+            alert('Error al registrarse: ' + err.message);
+          }
+        });
+      }
 
   });
 </script>
