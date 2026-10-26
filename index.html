@@ -41,18 +41,14 @@
     <a href="#faq">FAQ</a>
   </div>
   <div class="nav-cta" style="position: relative;">
-    <!-- Botón principal: Abre el login directo o el menú de cuenta según el estado -->
+    <!-- Botón Sign In -->
     <a href="#" class="btn-ghost" id="navAuthBtn" onclick="handleAuthClick(event)">Sign in</a>
-    
-    <!-- Menú desplegable que solo aparece CUANDO YA SE INICIÓ SESIÓN -->
-    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px 0; min-width: 160px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
+  
+    <!-- Menú desplegable cuando YA inició sesión -->
+    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 110%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 10px 0; min-width: 160px; z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.4);">
       <a href="#" onclick="alert('Ir al perfil'); return false;" style="display: block; padding: 8px 20px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Mi perfil</a>
       <a href="#" onclick="logoutUser(); return false;" style="display: block; padding: 8px 20px; color: #ff5c5c; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Cerrar sesión</a>
     </div>
-  
-    <!-- Botones ocultos nativos de Bootstrap para los modales -->
-    <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
-    <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
 </nav>
   
@@ -1295,32 +1291,68 @@
 
 <!-- Login -->
 <script>
-  // Variable para llevar el control del estado de sesión (falso por defecto)
   let isLoggedIn = false;
 
+  // Función principal del botón Sign In / Mi Cuenta
   window.handleAuthClick = function(event) {
     if (event) event.preventDefault();
     
     if (!isLoggedIn) {
-      // 1. Si NO ha iniciado sesión, abre directamente el modal de login de Bootstrap
-      const loginBtn = document.getElementById('realLoginBtn');
-      if (loginBtn) loginBtn.click();
+      // Abre tu modal personalizado (#authModal)
+      const modal = document.getElementById('authModal');
+      if (modal) {
+        modal.classList.add('active'); // Si tu CSS usa la clase .active
+        modal.style.display = 'flex';  // Por si tu CSS usa display flex para centrar
+        
+        // Asegura que abra en la pestaña de Login por defecto
+        if (typeof switchAuthTab === 'function') {
+          switchAuthTab('login');
+        }
+      }
     } else {
-      // 2. Si YA inició sesión, despliega el menú de la cuenta
+      // Si ya inició sesión, despliega el menú de cuenta
       const menu = document.getElementById('customAuthMenu');
-      if (!menu) return;
-      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      if (menu) {
+        menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+      }
     }
   };
 
-  // Función para simular que el usuario ya inició sesión (puedes llamarla cuando seautentique con éxito)
+  // Escuchador para cerrar el modal al hacer clic en la "X" (#closeAuthModal)
+  document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('closeAuthModal');
+    const modal = document.getElementById('authModal');
+    
+    if (closeBtn && modal) {
+      closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      });
+    }
+
+    // Opcional: Cerrar al hacer clic fuera de la tarjeta del modal
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('active');
+          modal.style.display = 'none';
+        }
+      });
+    }
+  });
+
+  // Funciones de prueba para cambiar de estado cuando te autentiques
   window.simulateLoginSuccess = function() {
     isLoggedIn = true;
     const btn = document.getElementById('navAuthBtn');
     if (btn) btn.textContent = 'Mi Cuenta ▾';
+    const modal = document.getElementById('authModal');
+    if (modal) {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+    }
   };
 
-  // Función para cerrar sesión
   window.logoutUser = function() {
     isLoggedIn = false;
     const btn = document.getElementById('navAuthBtn');
@@ -1329,7 +1361,7 @@
     if (menu) menu.style.display = 'none';
   };
 
-  // Cierra el menú desplegable si haces clic fuera de él
+  // Cierra el menú desplegable de "Mi Cuenta" al hacer clic fuera
   document.addEventListener('click', (e) => {
     const navCta = document.querySelector('.nav-cta');
     const menu = document.getElementById('customAuthMenu');
