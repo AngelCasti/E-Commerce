@@ -44,17 +44,17 @@
     <!-- Botón principal que abre/cierra el menú flotante -->
     <a href="#" class="btn-ghost" id="navAuthBtn" onclick="toggleAuthMenu(event)">Sign in</a>
     
-    <!-- Menú flotante (Estructura estática para garantizar que siempre cargue) -->
-    <div id="customAuthMenu" style="display: none; position: absolute; right: 0; top: 120%; background: #1e1e2f; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 8px 0; min-width: 160px; z-index: 99999; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-      <a href="#" onclick="openAuthModal('login'); return false;" style="display: block; padding: 10px 16px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-      <a href="#" onclick="openAuthModal('register'); return false;" style="display: block; padding: 10px 16px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">Registrarse</a>
-    </div>
+  <div id="customAuthMenu" style="display: none !important; position: absolute !important; right: 0 !important; top: 120% !important; background: #1e1e2f !important; border: 1px solid rgba(255,255,255,0.2) !important; border-radius: 12px !important; padding: 8px 0 !important; min-width: 160px !important; z-index: 999999 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.8) !important;">
+    <a href="#" onclick="openAuthModal('login'); return false;" style="display: block !important; padding: 10px 16px !important; color: #fff !important; text-decoration: none !important; font-size: 14px !important;">Iniciar Sesión</a>
+    <a href="#" onclick="openAuthModal('register'); return false;" style="display: block !important; padding: 10px 16px !important; color: #fff !important; text-decoration: none !important; font-size: 14px !important;">Registrarse</a>
+  </div>
   
     <!-- Botones ocultos nativos que controlan los modales sin fallar -->
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#loginModal" id="realLoginBtn" style="display: none;"></button>
     <button type="button" class="open-auth-btn" data-bs-toggle="modal" data-bs-target="#registerModal" id="realRegisterBtn" style="display: none;"></button>
   </div>
 </nav>
+  
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <a href="#features">Features</a>
@@ -1295,21 +1295,29 @@
 <script>
   window.toggleAuthMenu = function(event) {
     if (event) event.preventDefault();
-    if (event) event.stopPropagation(); // Evita conflictos con el cierre global
+    if (event) event.stopPropagation();
     
     const menu = document.getElementById('customAuthMenu');
-    if (!menu) return;
+    if (!menu) {
+      console.warn("⚠️ No se encontró el elemento #customAuthMenu en el DOM.");
+      return;
+    }
     
-    if (menu.style.display === 'block') {
-      menu.style.display = 'none';
+    // Obtenemos el estado real calculado por el navegador
+    const isHidden = window.getComputedStyle(menu).display === 'none';
+    
+    if (isHidden) {
+      menu.style.setProperty('display', 'block', 'important');
+      console.log("🔓 Menú abierto forzosamente.");
     } else {
-      menu.style.display = 'block';
+      menu.style.setProperty('display', 'none', 'important');
+      console.log("🔒 Menú cerrado.");
     }
   };
 
   window.openAuthModal = function(type) {
     const menu = document.getElementById('customAuthMenu');
-    if (menu) menu.style.display = 'none'; // Cierra el menú flotante
+    if (menu) menu.style.setProperty('display', 'none', 'important');
     
     if (type === 'login') {
       const loginBtn = document.getElementById('realLoginBtn');
@@ -1320,13 +1328,13 @@
     }
   };
 
-  // Cierra el menú flotante si haces clic fuera de él
+  // Cierra el menú si haces clic fuera
   document.addEventListener('click', (e) => {
     const menu = document.getElementById('customAuthMenu');
     const btn = document.getElementById('navAuthBtn');
-    if (menu && menu.style.display === 'block') {
+    if (menu && btn) {
       if (!menu.contains(e.target) && !btn.contains(e.target)) {
-        menu.style.display = 'none';
+        menu.style.setProperty('display', 'none', 'important');
       }
     }
   });
