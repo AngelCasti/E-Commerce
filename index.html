@@ -20,45 +20,95 @@
 ================================================================================
 -->
 <script>
+  // Asegúrate de tener tu variable global arriba:
+  // let isLoggedIn = false;
+
   document.addEventListener('DOMContentLoaded', () => {
     const navBtn = document.getElementById('navAuthBtn');
     const authModal = document.getElementById('authModal');
     const closeBtn = document.getElementById('closeAuthModal');
+    const loginForm = document.getElementById('loginForm');
 
+    // 1. Abrir modal o menú según el estado de sesión
     if (navBtn && authModal) {
       navBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        console.log("🔓 Abriendo #authModal de forma interactiva...");
         
-        // 1. Añadimos la clase active de tu plantilla
-        authModal.classList.add('active');
-        
-        // 2. Forzamos que sea visible y PERMITA hacer clics (pointer-events: auto)
-        authModal.style.setProperty('display', 'flex', 'important');
-        authModal.style.setProperty('opacity', '1', 'important');
-        authModal.style.setProperty('visibility', 'visible', 'important');
-        authModal.style.setProperty('pointer-events', 'auto', 'important');
-      });
-    }
-
-    if (closeBtn && authModal) {
-      closeBtn.addEventListener('click', () => {
-        authModal.classList.remove('active');
-        authModal.style.setProperty('display', 'none', 'important');
-        authModal.style.setProperty('pointer-events', 'none', 'important');
-      });
-    }
-
-    if (authModal) {
-      authModal.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-          authModal.classList.remove('active');
-          authModal.style.setProperty('display', 'none', 'important');
-          authModal.style.setProperty('pointer-events', 'none', 'important');
+        if (!isLoggedIn) {
+          // Si NO ha iniciado sesión, abre el modal
+          authModal.style.setProperty('display', 'flex', 'important');
+          authModal.style.setProperty('opacity', '1', 'important');
+          authModal.style.setProperty('visibility', 'visible', 'important');
+          authModal.style.setProperty('pointer-events', 'auto', 'important');
+          authModal.classList.add('active');
+        } else {
+          // Si YA inició sesión, abre el menú flotante para cerrar sesión
+          const menu = document.getElementById('customAuthMenu');
+          if (menu) {
+            const isMenuOpen = menu.style.display === 'block';
+            menu.style.display = isMenuOpen ? 'none' : 'block';
+          }
         }
       });
     }
+
+    // 2. DETECTAR CUANDO INICIA SESIÓN (Envío del formulario)
+    if (loginForm) {
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Evita que la página se recargue sola
+        
+        // Cambiamos el estado a autenticado
+        isLoggedIn = true;
+        
+        // Cambiamos el texto del botón superior
+        if (navBtn) navBtn.textContent = 'Mi Cuenta ▾';
+        
+        // Cerramos el modal de autenticación
+        if (authModal) {
+          authModal.style.setProperty('display', 'none', 'important');
+          authModal.style.setProperty('opacity', '0', 'important');
+          authModal.style.setProperty('visibility', 'hidden', 'important');
+          authModal.style.setProperty('pointer-events', 'none', 'important');
+          authModal.classList.remove('active');
+        }
+        
+        console.log("✅ ¡Sesión iniciada correctamente!");
+      });
+    }
+
+    // 3. Botón para cerrar el modal con la "X"
+    if (closeBtn && authModal) {
+      closeBtn.addEventListener('click', () => {
+        authModal.style.setProperty('display', 'none', 'important');
+        authModal.style.setProperty('opacity', '0', 'important');
+        authModal.style.setProperty('visibility', 'hidden', 'important');
+        authModal.style.setProperty('pointer-events', 'none', 'important');
+        authModal.classList.remove('active');
+      });
+    }
+
+    // 4. Cerrar menú de cuenta si hace clic afuera
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('customAuthMenu');
+      if (menu && navBtn) {
+        if (!menu.contains(e.target) && !navBtn.contains(e.target)) {
+          menu.style.display = 'none';
+        }
+      }
+    });
   });
+
+  // Función global para cerrar sesión (la que llama tu menú de cuenta)
+  window.logoutUser = function() {
+    isLoggedIn = false;
+    const navBtn = document.getElementById('navAuthBtn');
+    if (navBtn) navBtn.textContent = 'Sign in';
+    
+    const menu = document.getElementById('customAuthMenu');
+    if (menu) menu.style.display = 'none';
+    
+    console.log("🔒 Sesión cerrada");
+  };
 </script>
 </head>
 <body>
