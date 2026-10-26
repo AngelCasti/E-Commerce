@@ -668,43 +668,35 @@
 </section>
 
 <script>
-  // Global Supabase and session variables accessible by all functions
-  window.supabaseClient = null;
-  window.isUserLoggedIn = false;
-  let allExpanded = false;
-  let isAnnual = false;
+  // Se ejecuta de inmediato solo para este bloque
+  (function() {
+    const faqData = [
+      { q: "How secure are the automated transactions?", a: "We use bank-grade encryption, multi-factor authentication, and comply with strict international regulatory standards to ensure maximum security for your funds and data." },
+      { q: "How long does the setup process take?", a: "Most businesses can integrate our API and configure their basic settings within a few hours. Comprehensive support is available for complex industrial or corporate implementations." },
+      { q: "What kind of support is available?", a: "We offer 24/7 technical support via chat, email, and scheduled technical appointments with our engineering specialists." },
+      { q: "Can I scale my plan later as my business grows?", a: "Yes, our platform is fully modular and scalable, allowing you to upgrade your tier, add users, or expand features seamlessly at any time." }
+    ];
 
-  // Global functions for modal control
-  window.openAuthModal = function(tabName) {
-    const menu = document.getElementById('customAuthMenu');
-    if (menu) menu.style.display = 'none';
-    
-    const authModal = document.getElementById('authModal');
-    if (authModal) {
-      authModal.style.setProperty('display', 'flex', 'important');
-      authModal.style.setProperty('opacity', '1', 'important');
-      authModal.style.setProperty('visibility', 'visible', 'important');
-      authModal.style.setProperty('pointer-events', 'auto', 'important');
-      authModal.classList.add('active');
-      
-      if (tabName && typeof switchAuthTab === 'function') {
-        switchAuthTab(tabName);
-      }
+    const list = document.getElementById('faqList');
+    if (list) {
+      let htmlContent = '';
+      faqData.forEach((item, index) => {
+        htmlContent += `
+          <div class="faq-item" style="border-bottom: 1px solid var(--border); padding: 20px 0;">
+            <div class="faq-question" onclick="toggleFaq(${index})" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 16px; color: var(--text);">
+              <span>${item.q}</span>
+              <svg class="faq-arrow" id="faq-arrow-${index}" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="transition: transform 0.3s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="faq-answer" id="faq-answer-${index}" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: var(--text2); font-size: 14px; line-height: 1.6; padding-top: 0; padding-bottom: 0;">
+              ${item.a}
+            </div>
+          </div>
+        `;
+      });
+      list.innerHTML = htmlContent;
     }
-  };
+  })();
 
-  window.closeAuthModal = function() {
-    const authModal = document.getElementById('authModal');
-    if (authModal) {
-      authModal.style.setProperty('display', 'none', 'important');
-      authModal.style.setProperty('opacity', '0', 'important');
-      authModal.style.setProperty('visibility', 'hidden', 'important');
-      authModal.style.setProperty('pointer-events', 'none', 'important');
-      authModal.classList.remove('active');
-    }
-  };
-
-  // FAQ Handlers
   window.toggleFaq = function(index) {
     const answer = document.getElementById(`faq-answer-${index}`);
     const arrow = document.getElementById(`faq-arrow-${index}`);
@@ -753,66 +745,137 @@
         : '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>';
     }
   };
+</script>
 
-  window.togglePricing = function() {
-    isAnnual = !isAnnual;
-    const toggleSwitch = document.getElementById('pricingToggle');
-    if (toggleSwitch) {
-      toggleSwitch.classList.toggle('active', isAnnual);
-    }
+<!-- FOOTER -->
+<footer style="padding:24px max(48px, calc((100vw - var(--max-w)) / 2));border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div style="font-size:13px;color:var(--text3)">© 2026 FlowSync. All rights reserved. Designed with 🗣️</div>
+  <!-- <div style="display:flex;align-items:center;gap:20px">
+    <a href="#" class="footer-link">Privacy</a>
+    <a href="#" class="footer-link">Terms</a>
+    <a href="#" class="footer-link">Cookies</a>
+    <div style="width:1px;height:14px;background:var(--border)"></div>
+    <div style="display:flex;gap:8px">
+      <a href="#" class="social-btn" aria-label="Twitter"><svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+      <a href="#" class="social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+      <a href="#" class="social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+    </div> -->
+  </div>
+</footer>
 
-    document.querySelectorAll('.price-num').forEach(num => {
-      num.textContent = isAnnual ? num.getAttribute('data-annual') : num.getAttribute('data-monthly');
-    });
-
-    document.querySelectorAll('.period-label').forEach(label => {
-      label.textContent = isAnnual ? 'annually' : 'monthly';
-    });
-
-    document.querySelectorAll('.price-alt-monthly').forEach(el => {
-      el.style.display = isAnnual ? 'inline' : 'none';
-    });
+<!-- =================================================== -->
+<!-- MODAL DE LOGIN / REGISTER (Debe ir aquí, libre al final) -->
+<!-- =================================================== -->
+<div class="auth-modal-overlay" id="authModal">
+  <div class="auth-modal-card">
+    <button class="auth-close-btn" id="closeAuthModal" aria-label="Close modal">&times;</button>
     
-    document.querySelectorAll('.price-alt-annual').forEach(el => {
-      el.style.display = isAnnual ? 'none' : 'inline';
-    });
+    <!-- Tab Switcher -->
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" class="auth-form active">
+      <div class="auth-field">
+        <label for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@company.com" required>
+      </div>
+      <div class="auth-field">
+        <label for="loginPassword">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+          <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('loginPassword', this)" aria-label="Toggle password visibility">
+            <svg class="eye-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary auth-submit-btn">Sign In</button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" class="auth-form">
+      <div class="auth-field">
+        <label for="regName">Full Name</label>
+        <input type="text" id="regName" placeholder="Jane Doe" required>
+      </div>
+      <div class="auth-field">
+        <label for="regEmail">Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@company.com" required>
+      </div>
+      <div class="auth-field">
+        <label for="regPassword">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="regPassword" placeholder="••••••••" required>
+          <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility('regPassword', this)" aria-label="Toggle password visibility">
+            <svg class="eye-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary auth-submit-btn">Create Account</button>
+    </form>
+  </div>
+</div>
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   SUPERBASE    |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+<!-- |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+  
+<!-- 1. SDK de Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- 2. Script Maestro Unificado (Supabase + Autenticación + Modales) -->
+<script>
+  // Variable global para saber si hay sesión activa
+  window.isUserLoggedIn = false;
+
+  // Función global para abrir el modal de autenticación limpiamente
+  window.openAuthModal = function(tabName) {
+    const menu = document.getElementById('customAuthMenu');
+    if (menu) menu.style.display = 'none';
+    
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+      authModal.style.setProperty('display', 'flex', 'important');
+      authModal.style.setProperty('opacity', '1', 'important');
+      authModal.style.setProperty('visibility', 'visible', 'important');
+      authModal.style.setProperty('pointer-events', 'auto', 'important');
+      authModal.classList.add('active');
+      
+      // Cambiar a la pestaña de login o register si existe la función
+      if (tabName && typeof switchAuthTab === 'function') {
+        switchAuthTab(tabName);
+      }
+    }
   };
 
-  // Main DOM Content Loaded Logic
-  document.addEventListener('DOMContentLoaded', async () => {
-    // FAQ Generation
-    const faqData = [
-      { q: "How secure are the automated transactions?", a: "We use bank-grade encryption, multi-factor authentication, and comply with strict international regulatory standards to ensure maximum security for your funds and data." },
-      { q: "How long does the setup process take?", a: "Most businesses can integrate our API and configure their basic settings within a few hours. Comprehensive support is available for complex industrial or corporate implementations." },
-      { q: "What kind of support is available?", a: "We offer 24/7 technical support via chat, email, and scheduled technical appointments with our engineering specialists." },
-      { q: "Can I scale my plan later as my business grows?", a: "Yes, our platform is fully modular and scalable, allowing you to upgrade your tier, add users, or expand features seamlessly at any time." }
-    ];
-
-    const list = document.getElementById('faqList');
-    if (list) {
-      let htmlContent = '';
-      faqData.forEach((item, index) => {
-        htmlContent += `
-          <div class="faq-item" style="border-bottom: 1px solid var(--border); padding: 20px 0;">
-            <div class="faq-question" onclick="toggleFaq(${index})" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 16px; color: var(--text);">
-              <span>${item.q}</span>
-              <svg class="faq-arrow" id="faq-arrow-${index}" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="transition: transform 0.3s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            <div class="faq-answer" id="faq-answer-${index}" style="max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: var(--text2); font-size: 14px; line-height: 1.6; padding-top: 0; padding-bottom: 0;">
-              ${item.a}
-            </div>
-          </div>
-        `;
-      });
-      list.innerHTML = htmlContent;
+  // Función para cerrar el modal de forma segura
+  window.closeAuthModal = function() {
+    const authModal = document.getElementById('authModal');
+    if (authModal) {
+      authModal.style.setProperty('display', 'none', 'important');
+      authModal.style.setProperty('opacity', '0', 'important');
+      authModal.style.setProperty('visibility', 'hidden', 'important');
+      authModal.style.setProperty('pointer-events', 'none', 'important');
+      authModal.classList.remove('active');
     }
+  };
 
-    // Initialize Supabase Client globally
+  document.addEventListener('DOMContentLoaded', async () => {
     const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2N30.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
     
+    let supabaseClient;
     try {
-      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (err) {
       console.error("Error al iniciar Supabase:", err);
       return;
@@ -822,10 +885,12 @@
     const authMenu = document.getElementById('customAuthMenu');
     const closeBtn = document.getElementById('closeAuthModal');
     
+    // Configurar botón de cerrar modal ("X")
     if (closeBtn) {
       closeBtn.addEventListener('click', window.closeAuthModal);
     }
 
+    // Cerrar modal al hacer clic fuera de la tarjeta
     const authModal = document.getElementById('authModal');
     if (authModal) {
       authModal.addEventListener('click', (e) => {
@@ -836,15 +901,19 @@
     }
     
     try {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      // Verificar sesión activa en Supabase
+      const { data: { session } } = await supabaseClient.auth.getSession();
       
       if (session) {
+        // ==========================================
+        // ESTADO: USUARIO LOGUEADO
+        // ==========================================
         window.isUserLoggedIn = true;
         const user = session.user;
         
         let fullName = user.user_metadata?.full_name || '';
         if (!fullName) {
-          const { data: profile } = await window.supabaseClient
+          const { data: profile } = await supabaseClient
             .from('userInfo')
             .select('*')
             .or(`email.eq.${user.email},client_email.eq.${user.email}`)
@@ -854,6 +923,7 @@
         
         const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
+        // Estilizar el botón superior como perfil de usuario
         if (navAuthBtn) {
           navAuthBtn.innerHTML = `👤 <span style="margin-left: 6px; font-weight: 600;">${firstName} ▾</span>`;
           navAuthBtn.className = ""; 
@@ -873,6 +943,7 @@
           `;
         }
 
+        // Llenar el menú flotante con opciones de cuenta y cierre de sesión
         if (authMenu) {
           authMenu.innerHTML = `
             <div style="padding: 10px 15px 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 5px;">
@@ -883,22 +954,29 @@
           `;
         }
 
+        // Evento de Cerrar Sesión
         document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
           e.preventDefault();
-          await window.supabaseClient.auth.signOut();
+          await supabaseClient.auth.signOut();
           window.location.reload();
         });
 
+        // Auto-llenar campos del formulario de citas[cite: 1]
         const clientEmailInput = document.getElementById('clientEmail');
         const clientNameInput = document.getElementById('clientName');
         if (clientEmailInput && !clientEmailInput.value) clientEmailInput.value = user.email;
         if (clientNameInput && !clientNameInput.value && fullName) clientNameInput.value = fullName;
 
       } else {
+        // ==========================================
+        // ESTADO: USUARIO NO LOGUEADO
+        // ==========================================
         window.isUserLoggedIn = false;
+        
         if (navAuthBtn) {
           navAuthBtn.innerHTML = "Sign in";
         }
+        
         if (authMenu) {
           authMenu.innerHTML = `
             <a href="#" onclick="window.openAuthModal('login'); return false;" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
@@ -910,13 +988,17 @@
       console.error("Error al gestionar la sesión:", e);
     }
 
+    // Manejador inteligente del botón principal de navegación
     if (navAuthBtn) {
       navAuthBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+
         if (!window.isUserLoggedIn) {
+          // Si no ha iniciado sesión, abre el modal de login directamente
           window.openAuthModal('login');
         } else {
+          // Si ya inició sesión, despliega el menú de cuenta
           if (authMenu) {
             authMenu.style.display = (authMenu.style.display === 'block') ? 'none' : 'block';
           }
@@ -924,6 +1006,7 @@
       });
     }
 
+    // Cerrar menú flotante al hacer clic fuera[cite: 1]
     document.addEventListener('click', (e) => {
       const navCta = document.querySelector('.nav-cta');
       if (navCta && authMenu && !navCta.contains(e.target)) {
@@ -931,17 +1014,23 @@
       }
     });
 
-    // Login Form Listener
+    // ==========================================
+    // LOGIN[cite: 1]
+    // ==========================================
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = loginForm.querySelector('#loginEmail')?.value.trim() || '';
-        const password = loginForm.querySelector('#loginPassword')?.value || '';
+        const emailInput = loginForm.querySelector('#loginEmail');
+        const passwordInput = loginForm.querySelector('#loginPassword');
+        
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        
         if (!email || !password) return alert('Por favor ingresa correo y contraseña.');
 
         try {
-          const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           window.location.reload();
         } catch (err) {
@@ -950,18 +1039,25 @@
       });
     }
 
-    // Register Form Listener
+    // ==========================================
+    // REGISTER (Crear cuenta)[cite: 1]
+    // ==========================================
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = registerForm.querySelector('#regName')?.value.trim() || '';
-        const email = registerForm.querySelector('#regEmail')?.value.trim() || '';
-        const password = registerForm.querySelector('#regPassword')?.value || '';
+        const nameInput = registerForm.querySelector('#regName');
+        const emailInput = registerForm.querySelector('#regEmail');
+        const passwordInput = registerForm.querySelector('#regPassword');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
+        const email = emailInput ? emailInput.value.trim() : '';
+        const password = passwordInput ? passwordInput.value : '';
+        
         if (!email || !password) return alert('Por favor llena todos los campos.');
 
         try {
-          const { error } = await window.supabaseClient.auth.signUp({ 
+          const { error } = await supabaseClient.auth.signUp({ 
             email, 
             password,
             options: { data: { full_name: name } }
@@ -975,92 +1071,39 @@
       });
     }
 
-    // Appointment Form Listener (Fixed column name to 'appointment_notes')
-    const appointmentForm = document.getElementById('scheduleAppointmentForm');
-    if (appointmentForm) {
-      appointmentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const clientName = document.getElementById('clientName')?.value.trim() || '';
-        const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
-        const clientCompany = document.getElementById('clientCompany')?.value.trim() || '';
-        const appointmentType = document.getElementById('appointmentType')?.value || '';
-        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
-        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
-        const modalityInput = document.querySelector('input[name="modality"]:checked');
-        const modality = modalityInput ? modalityInput.value : 'virtual';
-        const appointmentNotes = document.getElementById('appointmentNotes')?.value.trim() || '';
-
-        if (!clientName || !clientEmail || !appointmentType || !appointmentDate || !appointmentTime) {
-          alert('Por favor completa todos los campos obligatorios marcados con *.');
-          return;
-        }
-
-        try {
-          const { error } = await window.supabaseClient.from('appointments').insert([{
-            client_name: clientName,
-            client_email: clientEmail,
-            client_company: clientCompany,
-            appointment_type: appointmentType,
-            appointment_date: appointmentDate,
-            appointment_time: appointmentTime,
-            modality: modality,
-            appointment_notes: appointmentNotes
-          }]);
-
-          if (error) throw error;
-
-          alert('¡Cita técnica programada con éxito! Nos pondremos en contacto contigo.');
-          appointmentForm.reset();
-        } catch (err) {
-          console.error('Error al guardar la cita:', err);
-          alert('Hubo un error al agendar la cita: ' + err.message);
-        }
-      });
-    }
-
-    // Sticky Cards Logic
-    const cards = document.querySelectorAll('.sticky-card');
-    const views = document.querySelectorAll('.panel-view');
-    const panelLabel = document.getElementById('panelLabel');
-    const labels = ["Business Process Automation", "Automated Reports", "Digital Process Solutions"];
-
-    cards.forEach((card, index) => {
-      card.addEventListener('click', () => {
-        cards.forEach(c => c.classList.remove('active'));
-        views.forEach(v => v.classList.remove('active'));
-        card.classList.add('active');
-        const targetView = document.getElementById(`panel-${index}`);
-        if (targetView) targetView.classList.add('active');
-        if (panelLabel) panelLabel.textContent = labels[index] || "Process View";
-      });
-    });
   });
 </script>
 
-<!-- Stats Counter Observer -->
+<!-- Porcentajes mamalones -->
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const statsSection = document.querySelector('.stats-section');
     if (!statsSection) return;
 
+    // Usamos un IntersectionObserver para detectar cuando las estadísticas son visibles en pantalla
     const observer = new IntersectionObserver((entries, observer) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
+          
+          // 1. Animar las barras de progreso
           document.querySelectorAll('.stat-bar').forEach(bar => {
             const targetWidth = bar.getAttribute('data-width');
-            if (targetWidth) bar.style.width = targetWidth;
+            if (targetWidth) {
+              bar.style.width = targetWidth;
+            }
           });
 
+          // 2. Animar los números contadores
           document.querySelectorAll('.stat-num').forEach(numEl => {
             const target = parseFloat(numEl.getAttribute('data-target'));
             const prefix = numEl.getAttribute('data-prefix') || '';
             const suffix = numEl.getAttribute('data-suffix') || '';
             const decimal = parseInt(numEl.getAttribute('data-decimal')) || 0;
+            
             if (isNaN(target)) return;
 
             let current = 0;
-            const duration = 2000;
+            const duration = 2000; // Duración de la animación en milisegundos (2 segundos)
             const steps = 60;
             const increment = target / steps;
             const stepTime = duration / steps;
@@ -1071,9 +1114,12 @@
                 current = target;
                 clearInterval(timer);
               }
+              // Formatear el número con sus prefijos, sufijos y decimales correspondientes
               numEl.textContent = prefix + current.toFixed(decimal) + suffix;
             }, stepTime);
           });
+
+          // Dejar de observar una vez que se ejecutó la animación
           observer.unobserve(entry.target);
         }
       });
@@ -1083,7 +1129,7 @@
   });
 </script>
 
-<!-- Testimonials Carousel -->
+<!-- Carrusel -->
 <script>
   const testimonialsData = [
     { name: "Sarah Jenkins", role: "CTO at FinTech Global", text: "Novapay completely transformed how we handle international transactions. Incredible speed and security." },
@@ -1092,12 +1138,15 @@
     { name: "David Miller", role: "Founder & CEO", text: "The best payment automation platform we've used. Highly recommended for scaling companies." }
   ];
 
-  let isTestimonialsPaused = false;
+  let isPaused = false;
 
   function renderTestimonials() {
     const track = document.getElementById('testiTrack');
     if (!track) return;
+    
+    // Duplicamos los datos para lograr el bucle infinito perfecto
     const duplicatedData = [...testimonialsData, ...testimonialsData];
+    
     let htmlContent = '';
     duplicatedData.forEach(t => {
       htmlContent += `
@@ -1127,17 +1176,18 @@
     const track = document.getElementById('testiTrack');
     const label = document.getElementById('testiLabel');
     const icon = document.getElementById('testiIcon');
+    
     if (!track) return;
 
-    isTestimonialsPaused = !isTestimonialsPaused;
-    if (isTestimonialsPaused) {
+    isPaused = !isPaused;
+    if (isPaused) {
       track.style.animationPlayState = 'paused';
-      if (label) label.textContent = 'Play';
-      if (icon) icon.innerHTML = '<polygon points="5,3 19,12 5,21" fill="currentColor"/>';
+      label.textContent = 'Play';
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21" fill="currentColor"/>';
     } else {
       track.style.animationPlayState = 'running';
-      if (label) label.textContent = 'Pause';
-      if (icon) icon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
+      label.textContent = 'Pause';
+      icon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
     }
   };
 
@@ -1145,8 +1195,128 @@
     renderTestimonials();
   });
 </script>
-
+<!-- 3. Script de la plantilla Novapay al final de todo -->
 <script src="templatemo-623-novapay-script.js"></script>
+
+<!-- business sepa la bola -->  
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const cards = document.querySelectorAll('.sticky-card');
+    const views = document.querySelectorAll('.panel-view');
+    const panelLabel = document.getElementById('panelLabel');
+
+    // Títulos correspondientes a cada panel
+    const labels = ["Business Process Automation", "Automated Reports", "Digital Process Solutions"];
+
+    cards.forEach((card, index) => {
+      card.addEventListener('click', () => {
+        // 1. Quitar clase active de todas las tarjetas y paneles
+        cards.forEach(c => c.classList.remove('active'));
+        views.forEach(v => v.classList.remove('active'));
+
+        // 2. Activar la tarjeta seleccionada y su respectivo panel
+        card.classList.add('active');
+        const targetView = document.getElementById(`panel-${index}`);
+        if (targetView) targetView.classList.add('active');
+
+        // 3. Cambiar el texto del título superior del panel
+        if (panelLabel) panelLabel.textContent = labels[index] || "Process View";
+      });
+    });
+  });
+</script>
+
+<!-- botoncito Suscrip -->
+<script>
+  let isAnnual = false;
+
+  function togglePricing() {
+    isAnnual = !isAnnual;
+    const toggleSwitch = document.getElementById('pricingToggle');
+    
+    // 1. Activa o desactiva la clase para que el CSS de Novapay mueva el switch
+    if (toggleSwitch) {
+      toggleSwitch.classList.toggle('active', isAnnual);
+    }
+
+    // 2. Cambia los números de los precios (mensual / anual)
+    document.querySelectorAll('.price-num').forEach(num => {
+      num.textContent = isAnnual ? num.getAttribute('data-annual') : num.getAttribute('data-monthly');
+    });
+
+    // 3. Cambia el texto del periodo en la tarjetita
+    document.querySelectorAll('.period-label').forEach(label => {
+      label.textContent = isAnnual ? 'annually' : 'monthly';
+    });
+
+    // 4. Muestra u oculta los textos de ahorro / cobro total anual
+    document.querySelectorAll('.price-alt-monthly').forEach(el => {
+      el.style.display = isAnnual ? 'inline' : 'none';
+    });
+    
+    document.querySelectorAll('.price-alt-annual').forEach(el => {
+      el.style.display = isAnnual ? 'none' : 'inline';
+    });
+  }
+</script>
+
+<!-- Script para el formulario -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const appointmentForm = document.getElementById('scheduleAppointmentForm');
+
+    if (appointmentForm) {
+      appointmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Evita que la página se recargue
+
+        // 1. Capturar los valores de todos los campos del formulario
+        const clientName = document.getElementById('clientName')?.value.trim() || '';
+        const clientEmail = document.getElementById('clientEmail')?.value.trim() || '';
+        const clientCompany = document.getElementById('clientCompany')?.value.trim() || '';
+        const appointmentType = document.getElementById('appointmentType')?.value || '';
+        const appointmentDate = document.getElementById('appointmentDate')?.value || '';
+        const appointmentTime = document.getElementById('appointmentTime')?.value || '';
+        
+        // Capturar el radio button seleccionado para la modalidad (Virtual u On-site)
+        const modalityInput = document.querySelector('input[name="modality"]:checked');
+        const modality = modalityInput ? modalityInput.value : 'virtual';
+        
+        const appointmentNotes = document.getElementById('appointmentNotes')?.value.trim() || '';
+
+        // 2. Validar campos obligatorios básicos
+        if (!clientName || !clientEmail || !appointmentType || !appointmentDate || !appointmentTime) {
+          alert('Por favor completa todos los campos obligatorios marcados con *.');
+          return;
+        }
+
+        try {
+          // Asegúrate de que tu cliente de Supabase esté inicializado (window.supabaseClient o similar)
+          // Aquí asumimos que usas el cliente estándar o puedes integrarlo en tu script unificado de Supabase.
+          const { error } = await supabaseClient.from('appointments').insert([{
+            client_name: clientName,
+            client_email: clientEmail,
+            client_company: clientCompany,
+            appointment_type: appointmentType,
+            appointment_date: appointmentDate,
+            appointment_time: appointmentTime,
+            modality: modality,
+            notes: appointmentNotes
+          }]);
+
+          if (error) throw error;
+
+          alert('¡Cita técnica programada con éxito! Nos pondremos en contacto contigo.');
+          appointmentForm.reset(); // Limpia el formulario tras el éxito
+
+        } catch (err) {
+          console.error('Error al guardar la cita:', err);
+          alert('Hubo un error al agendar la cita: ' + err.message);
+        }
+      });
+    }
+  });
+</script>
+  
   
 </body>
 </html>
