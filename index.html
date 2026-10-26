@@ -40,8 +40,8 @@
     <a href="#pricing">Services</a>
     <a href="#faq">FAQ</a>
   </div>
-  <div class="m-btns" id="authMenu">
-    <a href="#" class="btn-ghost">Sign in</a>
+  <div class="nav-cta">
+    <a href="#" class="btn-ghost open-auth-btn" id="navAuthBtn">Sign in</a>
   </div>
   <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -744,11 +744,10 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script Seguro y Limpio -->
+<!-- 2. Script Adaptado a tu ID #navAuthBtn -->
 <script>
   (function() {
     document.addEventListener('DOMContentLoaded', async () => {
-      // ⚠️ Asegúrate de que estas credenciales sean exactas y no les falte ningún carácter
       const SUPABASE_URL = 'https://azeydgmistjdnxcfdxwx.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6ZXlkZ21pc3RqZG54Y2ZkeHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NzU1NjcsImV4cCI6MjEwODQ1MTU2Nz0.neouxP-xVK9XJ7-3-aUdh8npiJpTBCE8fHSMyT97K4o';
       
@@ -761,9 +760,9 @@
       }
 
       // ==========================================
-      // 1. GESTIÓN DE SESIÓN Y NAVBAR (#authMenu)
+      // 1. GESTIÓN DE SESIÓN Y CAMBIO DE #navAuthBtn
       // ==========================================
-      const authMenuContainer = document.getElementById('authMenu');
+      const authBtn = document.getElementById('navAuthBtn');
       
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -786,13 +785,13 @@
           
           const firstName = fullName ? fullName.split(' ')[0] : user.email.split('@')[0];
 
-          // Si hay sesión, mostramos el menú desplegable limpio en el contenedor
-          if (authMenuContainer) {
-            authMenuContainer.innerHTML = `
-              <div class="dropdown">
-                <button class="btn btn-outline-light dropdown-toggle rounded-pill px-3 py-1" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 14px;">
+          // Si hay sesión, transformamos tu botón Sign In en un menú desplegable limpio dentro del nav-cta
+          if (authBtn) {
+            authBtn.outerHTML = `
+              <div class="dropdown d-inline-block">
+                <a class="btn btn-outline-light dropdown-toggle rounded-pill px-3 py-1 text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 14px;">
                   👤 ${firstName}
-                </button>
+                </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userDropdown">
                   <li><span class="dropdown-item-text text-muted small"><strong>${user.email}</strong></span></li>
                   <li><hr class="dropdown-divider"></li>
@@ -803,26 +802,20 @@
           }
 
           // Evento de Cerrar Sesión
-          document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            await supabaseClient.auth.signOut();
-            alert('Has cerrado sesión correctamente.');
-            window.location.reload();
-          });
+          setTimeout(() => {
+            document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+              e.preventDefault();
+              await supabaseClient.auth.signOut();
+              alert('Has cerrado sesión correctamente.');
+              window.location.reload();
+            });
+          }, 100);
 
           // Auto-llenar formulario de citas con los datos del usuario activo
           const clientEmailInput = document.getElementById('clientEmail');
           const clientNameInput = document.getElementById('clientName');
           if (clientEmailInput && !clientEmailInput.value) clientEmailInput.value = user.email;
           if (clientNameInput && !clientNameInput.value && fullName) clientNameInput.value = fullName;
-
-        } else {
-          // Si NO hay sesión, mostramos un botón estándar de Sign In limpio
-          if (authMenuContainer) {
-            authMenuContainer.innerHTML = `
-              <a href="#loginModal" data-bs-toggle="modal" class="btn btn-primary rounded-pill px-3 py-1" style="font-size: 14px;">Sign In</a>
-            `;
-          }
         }
       } catch (e) {
         console.error("Error al gestionar la sesión:", e);
@@ -903,8 +896,7 @@
           const password = passwordInput ? passwordInput.value : '';
           
           if (!email || !password) {
-            alert('Por favor ingresa correo y contraseña.');
-            return;
+            return alert('Por favor ingresa correo y contraseña.');
           }
 
           try {
@@ -934,8 +926,7 @@
           const password = passwordInput ? passwordInput.value : '';
           
           if (!email || !password) {
-            alert('Por favor llena todos los campos.');
-            return;
+            return alert('Por favor llena todos los campos.');
           }
 
           try {
