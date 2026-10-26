@@ -750,16 +750,16 @@
 <!-- 1. SDK de Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<!-- 2. Script con Función de Menú Desplegable Personalizado -->
+<!-- 2. Script con Disparadores Nativos de Bootstrap -->
 <script>
-  // Función global para "aventar" o mostrar/ocultar el menú al dar clic
+  // Función global para mostrar/ocultar el menú flotante
   window.toggleAuthMenu = function(e) {
     e.preventDefault();
     const menu = document.getElementById('customAuthMenu');
     menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
   };
 
-  // Cerrar el menú si se hace clic en cualquier otra parte de la página
+  // Cerrar el menú si se hace clic fuera de él
   document.addEventListener('click', (e) => {
     const navCta = document.querySelector('.nav-cta');
     const menu = document.getElementById('customAuthMenu');
@@ -767,27 +767,6 @@
       menu.style.display = 'none';
     }
   });
-
-  // Funciones auxiliares para abrir los modales de la plantilla
-  window.openLoginModal = function(e) {
-    e.preventDefault();
-    document.getElementById('customAuthMenu').style.display = 'none';
-    const loginModalEl = document.getElementById('loginModal');
-    if (loginModalEl) {
-      const modal = bootstrap.Modal.getOrCreateInstance(loginModalEl);
-      modal.show();
-    }
-  };
-
-  window.openRegisterModal = function(e) {
-    e.preventDefault();
-    document.getElementById('customAuthMenu').style.display = 'none';
-    const registerModalEl = document.getElementById('registerModal');
-    if (registerModalEl) {
-      const modal = bootstrap.Modal.getOrCreateInstance(registerModalEl);
-      modal.show();
-    }
-  };
 
   (function() {
     document.addEventListener('DOMContentLoaded', async () => {
@@ -859,17 +838,16 @@
 
         } else {
           // ==========================================
-          // ESTADO: USUARIO NO LOGUEADO
+          // ESTADO: USUARIO NO LOGUEADO (Con atributos nativos de Bootstrap)
           // ==========================================
           if (navAuthBtn) {
             navAuthBtn.innerHTML = "Sign in";
           }
           
-          // Llenar el menú flotante con las opciones para abrir los modales
           if (authMenu) {
             authMenu.innerHTML = `
-              <a href="#" onclick="openLoginModal(event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
-              <a href="#" onclick="openRegisterModal(event)" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
+              <a href="#loginModal" data-bs-toggle="modal" data-bs-target="#loginModal" onclick="document.getElementById('customAuthMenu').style.display='none'" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Iniciar Sesión</a>
+              <a href="#registerModal" data-bs-toggle="modal" data-bs-target="#registerModal" onclick="document.getElementById('customAuthMenu').style.display='none'" style="display: block; padding: 8px 15px; color: #fff; text-decoration: none; font-size: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Registrarse</a>
             `;
           }
         }
